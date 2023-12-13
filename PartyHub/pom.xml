@@ -12,7 +12,7 @@
 	<artifactId>PartyHub</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>PartyHub</name>
-	<description>PartyHum</description>
+	<description>PartyHub</description>
 	<properties>
 		<java.version>21</java.version>
 	</properties>
