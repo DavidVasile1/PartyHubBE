@@ -1,25 +1,26 @@
-package com.example.PartyHub.model.entities;
+package com.example.PartyHub.entities;
+
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class Ticket {
+public class CustomerDetails {
+
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
-    private boolean valid;
-    private LocalDate validationDate;
-    private int pricePaid;
-    private String type;
-    @ManyToOne
-    private Event event;
+    private String fullName;
+    private int age;
+    private int discountForNextTicket;
+    @OneToOne
+    private User user;
 }

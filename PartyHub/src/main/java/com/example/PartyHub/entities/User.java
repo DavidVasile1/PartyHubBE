@@ -1,4 +1,4 @@
-package com.example.PartyHub.model.entities;
+package com.example.PartyHub.entities;
 
 
 import jakarta.persistence.*;
@@ -12,15 +12,14 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class CustomerDetails {
-
-
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
-    private String fullName;
-    private int age;
-    private int discountForNextTicket;
+    private String email;
+    private String password;
+    private String role;
+    private String promoCode;
     @OneToOne
-    private User user;
+    private CustomerDetails customerDetails;
 }

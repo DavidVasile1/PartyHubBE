@@ -1,4 +1,4 @@
-package com.example.PartyHub.model.entities;
+package com.example.PartyHub.entities;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -24,7 +24,6 @@ public class Event {
     private String details;
     private int price;
     private int ticketsNumber;
-    @OneToMany
+    @OneToMany(mappedBy = "event")
     private List<Ticket> tickets;
-
 }
