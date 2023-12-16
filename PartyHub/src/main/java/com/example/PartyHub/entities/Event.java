@@ -22,7 +22,8 @@ public class Event {
     private String location;
     private LocalDate date;
     private String details;
-    private int price;
+    private float price;
+    private float discount;
     private int ticketsNumber;
     @OneToMany(mappedBy = "event")
     private List<Ticket> tickets;

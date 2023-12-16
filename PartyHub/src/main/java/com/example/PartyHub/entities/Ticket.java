@@ -17,7 +17,7 @@ public class Ticket {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
     private LocalDate validationDate;
-    private int pricePaid;
+    private float pricePaid;
     private String type;
     @ManyToOne
     private Event event;
