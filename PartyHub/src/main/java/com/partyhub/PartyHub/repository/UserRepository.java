@@ -1,6 +1,6 @@
-package com.example.PartyHub.repository;
+package com.partyhub.PartyHub.repository;
 
-import com.example.PartyHub.entities.User;
+import com.partyhub.PartyHub.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
