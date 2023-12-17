@@ -1,4 +1,4 @@
-package com.example.PartyHub;
+package com.partyhub.PartyHub;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

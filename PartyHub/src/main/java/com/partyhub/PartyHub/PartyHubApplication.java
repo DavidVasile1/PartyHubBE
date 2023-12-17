@@ -1,4 +1,4 @@
-package com.example.PartyHub;
+package com.partyhub.PartyHub;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

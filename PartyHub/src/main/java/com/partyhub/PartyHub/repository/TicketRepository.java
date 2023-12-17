@@ -1,6 +1,6 @@
-package com.example.PartyHub.repository;
+package com.partyhub.PartyHub.repository;
 
-import com.example.PartyHub.entities.Ticket;
+import com.partyhub.PartyHub.entities.Ticket;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
