@@ -1,4 +1,4 @@
-package com.example.PartyHub.entities;
+package com.partyhub.PartyHub.entities;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
