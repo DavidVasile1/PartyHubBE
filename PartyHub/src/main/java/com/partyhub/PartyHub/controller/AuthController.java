@@ -1,5 +1,6 @@
 package com.partyhub.PartyHub.controller;
 
+import com.partyhub.PartyHub.dto.LoginDto;
 import com.partyhub.PartyHub.dto.RegisterDto;
 import com.partyhub.PartyHub.entities.CustomerDetails;
 import com.partyhub.PartyHub.entities.Role;
@@ -10,6 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,6 +30,16 @@ public class AuthController {
     private UserRepository userRepository;
     private RoleRepository roleRepository;
     private PasswordEncoder passwordEncoder;
+
+    @PostMapping("login")
+    public ResponseEntity<String> login(@RequestBody LoginDto loginDto){
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                loginDto.getEmail(),
+                loginDto.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        return new ResponseEntity<>("User sign in success", HttpStatus.OK);
+    }
 
     @PostMapping("register")
     public ResponseEntity<String> register(@RequestBody RegisterDto registerDto){

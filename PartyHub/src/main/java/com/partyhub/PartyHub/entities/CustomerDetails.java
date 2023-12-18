@@ -13,8 +13,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 public class CustomerDetails {
-
-
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
