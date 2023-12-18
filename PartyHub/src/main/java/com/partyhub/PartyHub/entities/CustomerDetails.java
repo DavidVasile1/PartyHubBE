@@ -21,6 +21,4 @@ public class CustomerDetails {
     private String fullName;
     private int age;
     private int discountForNextTicket;
-    @OneToOne
-    private User user;
 }
