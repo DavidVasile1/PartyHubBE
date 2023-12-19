@@ -6,13 +6,15 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
 
 import javax.xml.crypto.Data;
 import java.util.Date;
 
+@Component
 public class JWTGenerator {
 
-    public String generateToke(Authentication authentication){
+    public String generateToken(Authentication authentication){
         String email=authentication.getName();
         Date currentDate=new Date();
         Date expireDate=new Date(currentDate.getTime()+SecurityConstants.JWT_EXPIRATION);
