@@ -26,22 +26,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         String token = getJwtFromRequest(request);
-        if(StringUtils.hasText(token)&&tokenGenerator.validateToken(token)){
-            String email=tokenGenerator.getEmailFromJWT(token);
+        if(StringUtils.hasText(token) && tokenGenerator.validateToken(token)) {
+            String email = tokenGenerator.getEmailFromJWT(token);
 
-            UserDetails userDetails=customUserDetailsService.loadUserByUsername(email);
-            UsernamePasswordAuthenticationToken authenticationToken=new UsernamePasswordAuthenticationToken(userDetails,
-                    userDetails.getAuthorities());
+            UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                    userDetails, null, userDetails.getAuthorities());
             authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         }
-        filterChain.doFilter(request,response);
+        filterChain.doFilter(request, response);
     }
 
-    private String getJwtFromRequest(HttpServletRequest request){
-        String bearerToken = request.getHeader("Authentication");
-        if (StringUtils.hasText(bearerToken)&&bearerToken.startsWith("Bearer ")){
-            return  bearerToken.substring(7, bearerToken.length());
+    private String getJwtFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");  // Corectat numele antetului
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
         }
         return null;
     }
