@@ -1,5 +1,6 @@
 package com.partyhub.PartyHub.controller;
 
+import com.partyhub.PartyHub.dto.AuthResponseDto;
 import com.partyhub.PartyHub.dto.LoginDto;
 import com.partyhub.PartyHub.dto.RegisterDto;
 import com.partyhub.PartyHub.entities.CustomerDetails;
@@ -8,6 +9,7 @@ import com.partyhub.PartyHub.entities.User;
 import com.partyhub.PartyHub.repository.CustomerDetailsRepository;
 import com.partyhub.PartyHub.repository.RoleRepository;
 import com.partyhub.PartyHub.repository.UserRepository;
+import com.partyhub.PartyHub.security.JwtGenerator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -33,15 +35,17 @@ public class AuthController {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final CustomerDetailsRepository customerDetailsRepository;
+    private final JwtGenerator jwtGenerator;
 
     @PostMapping("login")
-    public ResponseEntity<String> login(@RequestBody LoginDto loginDto){
+    public ResponseEntity<AuthResponseDto> login(@RequestBody LoginDto loginDto){
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                 loginDto.getEmail(),
                 loginDto.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        return new ResponseEntity<>("User sign in success", HttpStatus.OK);
+        String token = jwtGenerator.generateToken(authentication);
+        return new ResponseEntity<>(new AuthResponseDto(token), HttpStatus.OK);
     }
 
     @PostMapping("register")
@@ -54,7 +58,7 @@ public class AuthController {
         User user = new User();
         user.setEmail(registerDto.getEmail());
         user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
-        Role role = roleRepository.findByName("USER").orElseThrow(()-> new RuntimeException("nu e rol"));
+        Role role = roleRepository.findByName("USER").orElseThrow(()-> new RuntimeException("Role not found"));
         user.setRoles(Collections.singletonList(role));
 
         CustomerDetails customerDetails = new CustomerDetails();
