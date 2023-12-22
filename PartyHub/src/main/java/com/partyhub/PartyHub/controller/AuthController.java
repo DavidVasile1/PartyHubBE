@@ -6,8 +6,8 @@ import com.partyhub.PartyHub.dto.RegisterDto;
 import com.partyhub.PartyHub.entities.CustomerDetails;
 import com.partyhub.PartyHub.entities.Role;
 import com.partyhub.PartyHub.entities.User;
-import com.partyhub.PartyHub.repository.CustomerDetailsRepository;
 import com.partyhub.PartyHub.security.JwtGenerator;
+import com.partyhub.PartyHub.service.CustomerDetailsService;
 import com.partyhub.PartyHub.service.RoleService;
 import com.partyhub.PartyHub.service.UserService;
 import jakarta.transaction.Transactional;
@@ -35,7 +35,7 @@ public class AuthController {
     private final UserService userService;
     private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
-    private final CustomerDetailsRepository customerDetailsRepository;
+    private final CustomerDetailsService customerDetailsService;
     private final JwtGenerator jwtGenerator;
 
     @PostMapping(value = "login", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -67,7 +67,7 @@ public class AuthController {
         customerDetails.setAge(registerDto.getAge());
         customerDetails.setFullName(registerDto.getFullName());
         customerDetails.setDiscountForNextTicket(0);
-        customerDetailsRepository.save(customerDetails);
+        customerDetailsService.save(customerDetails);
 
         user.setCustomerDetails(customerDetails);
 
