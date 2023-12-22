@@ -1,13 +1,13 @@
-package com.partyhub.PartyHub.security;
+package com.partyhub.PartyHub.service.impl;
 
 import com.partyhub.PartyHub.entities.Role;
 import com.partyhub.PartyHub.entities.User;
 import com.partyhub.PartyHub.repository.UserRepository;
+import com.partyhub.PartyHub.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -17,8 +17,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class CustomUserDetailsService implements UserDetailsService {
-
+public class CustomUserDetailsServiceImpl implements CustomUserDetailsService {
     private final UserRepository userRepository;
 
     @Override

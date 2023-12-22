@@ -1,5 +1,6 @@
 package com.partyhub.PartyHub.security;
 
+import com.partyhub.PartyHub.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
