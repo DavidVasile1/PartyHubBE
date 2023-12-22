@@ -8,8 +8,8 @@ import com.partyhub.PartyHub.entities.Role;
 import com.partyhub.PartyHub.entities.User;
 import com.partyhub.PartyHub.repository.CustomerDetailsRepository;
 import com.partyhub.PartyHub.repository.RoleRepository;
-import com.partyhub.PartyHub.repository.UserRepository;
 import com.partyhub.PartyHub.security.JwtGenerator;
+import com.partyhub.PartyHub.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -32,7 +32,7 @@ import java.util.Collections;
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final CustomerDetailsRepository customerDetailsRepository;
@@ -53,7 +53,7 @@ public class AuthController {
     @PostMapping("register")
     @Transactional
     public ResponseEntity<String> register(@RequestBody RegisterDto registerDto){
-        if(userRepository.existsByEmail(registerDto.getEmail())){
+        if(userService.existsByEmail(registerDto.getEmail())){
             return new ResponseEntity<>("Email already used!", HttpStatus.BAD_REQUEST);
         }
 
@@ -71,7 +71,7 @@ public class AuthController {
 
         user.setCustomerDetails(customerDetails);
 
-        userRepository.save(user);
+        userService.save(user);
 
         return new ResponseEntity<>("User registered successfully!", HttpStatus.OK);
     }

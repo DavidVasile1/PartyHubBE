@@ -13,7 +13,4 @@ import java.util.stream.Collectors;
 public interface CustomUserDetailsService extends UserDetailsService {
     @Override
     UserDetails loadUserByUsername(String email) throws UsernameNotFoundException;
-    private Collection<GrantedAuthority> mapRolesToGrantedAuthorities(List<Role> roles){
-        return roles.stream().map(role -> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toList());
-    }
 }

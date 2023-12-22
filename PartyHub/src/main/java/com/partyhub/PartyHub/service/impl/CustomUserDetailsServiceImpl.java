@@ -2,8 +2,8 @@ package com.partyhub.PartyHub.service.impl;
 
 import com.partyhub.PartyHub.entities.Role;
 import com.partyhub.PartyHub.entities.User;
-import com.partyhub.PartyHub.repository.UserRepository;
 import com.partyhub.PartyHub.service.CustomUserDetailsService;
+import com.partyhub.PartyHub.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -18,11 +18,11 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailsServiceImpl implements CustomUserDetailsService {
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email).orElseThrow(()-> new UsernameNotFoundException("Email not found"));
+        User user = userService.findByEmail(email).orElseThrow(()-> new UsernameNotFoundException("Email not found"));
         return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), mapRolesToGrantedAuthorities(user.getRoles()));
     }
 
