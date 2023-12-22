@@ -7,8 +7,8 @@ import com.partyhub.PartyHub.entities.CustomerDetails;
 import com.partyhub.PartyHub.entities.Role;
 import com.partyhub.PartyHub.entities.User;
 import com.partyhub.PartyHub.repository.CustomerDetailsRepository;
-import com.partyhub.PartyHub.repository.RoleRepository;
 import com.partyhub.PartyHub.security.JwtGenerator;
+import com.partyhub.PartyHub.service.RoleService;
 import com.partyhub.PartyHub.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +33,7 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
-    private final RoleRepository roleRepository;
+    private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
     private final CustomerDetailsRepository customerDetailsRepository;
     private final JwtGenerator jwtGenerator;
@@ -60,7 +60,7 @@ public class AuthController {
         User user = new User();
         user.setEmail(registerDto.getEmail());
         user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
-        Role role = roleRepository.findByName("USER").orElseThrow(()-> new RuntimeException("Role not found"));
+        Role role = roleService.findByName("USER").orElseThrow(()-> new RuntimeException("Role not found"));
         user.setRoles(Collections.singletonList(role));
 
         CustomerDetails customerDetails = new CustomerDetails();
