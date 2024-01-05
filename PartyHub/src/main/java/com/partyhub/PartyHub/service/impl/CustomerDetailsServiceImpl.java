@@ -4,7 +4,6 @@ import com.partyhub.PartyHub.entities.CustomerDetails;
 import com.partyhub.PartyHub.repository.CustomerDetailsRepository;
 import com.partyhub.PartyHub.service.CustomerDetailsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
