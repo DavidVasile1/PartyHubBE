@@ -63,11 +63,7 @@ public class AuthController {
         Role role = roleService.findByName("USER").orElseThrow(()-> new RuntimeException("Role not found"));
         user.setRoles(Collections.singletonList(role));
 
-        CustomerDetails customerDetails = new CustomerDetails();
-        customerDetails.setAge(registerDto.getAge());
-        customerDetails.setFullName(registerDto.getFullName());
-        customerDetails.setDiscountForNextTicket(0);
-        customerDetailsService.save(customerDetails);
+        CustomerDetails customerDetails = customerDetailsService.create(registerDto.getAge(), registerDto.getFullName());
 
         user.setCustomerDetails(customerDetails);
 

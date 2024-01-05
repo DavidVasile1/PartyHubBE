@@ -16,4 +16,14 @@ public class CustomerDetailsServiceImpl implements CustomerDetailsService {
     public void save(CustomerDetails customerDetails) {
         customerDetailsRepository.save(customerDetails);
     }
+
+    @Override
+    public CustomerDetails create(int age, String fullName) {
+        CustomerDetails customerDetails = new CustomerDetails();
+        customerDetails.setAge(age);
+        customerDetails.setFullName(fullName);
+        customerDetails.setDiscountForNextTicket(0);
+        save(customerDetails);
+        return customerDetails;
+    }
 }

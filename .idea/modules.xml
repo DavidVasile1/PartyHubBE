@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/PartyHub.iml" filepath="$PROJECT_DIR$/.idea/PartyHub.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/PartyHubBE.iml" filepath="$PROJECT_DIR$/.idea/PartyHubBE.iml" />
     </modules>
   </component>
