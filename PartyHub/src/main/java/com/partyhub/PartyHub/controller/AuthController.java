@@ -3,11 +3,11 @@ package com.partyhub.PartyHub.controller;
 import com.partyhub.PartyHub.dto.AuthResponseDto;
 import com.partyhub.PartyHub.dto.LoginDto;
 import com.partyhub.PartyHub.dto.RegisterDto;
-import com.partyhub.PartyHub.entities.CustomerDetails;
+import com.partyhub.PartyHub.entities.UserDetails;
 import com.partyhub.PartyHub.entities.Role;
 import com.partyhub.PartyHub.entities.User;
 import com.partyhub.PartyHub.security.JwtGenerator;
-import com.partyhub.PartyHub.service.CustomerDetailsService;
+import com.partyhub.PartyHub.service.UserDetailsService;
 import com.partyhub.PartyHub.service.RoleService;
 import com.partyhub.PartyHub.service.UserService;
 import jakarta.transaction.Transactional;
@@ -35,7 +35,7 @@ public class AuthController {
     private final UserService userService;
     private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
-    private final CustomerDetailsService customerDetailsService;
+    private final UserDetailsService userDetailsService;
     private final JwtGenerator jwtGenerator;
 
     @PostMapping(value = "login", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -63,9 +63,9 @@ public class AuthController {
         Role role = roleService.findByName("USER").orElseThrow(()-> new RuntimeException("Role not found"));
         user.setRoles(Collections.singletonList(role));
 
-        CustomerDetails customerDetails = customerDetailsService.create(registerDto.getAge(), registerDto.getFullName());
+        UserDetails userDetails = userDetailsService.create(registerDto.getAge(), registerDto.getFullName());
 
-        user.setCustomerDetails(customerDetails);
+        user.setUserDetails(userDetails);
 
         userService.save(user);
 
