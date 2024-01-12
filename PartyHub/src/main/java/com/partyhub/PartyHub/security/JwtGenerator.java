@@ -1,14 +1,13 @@
 package com.partyhub.PartyHub.security;
 
-import com.partyhub.PartyHub.entities.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-import com.partyhub.PartyHub.entities.Role;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
@@ -21,16 +20,17 @@ public class JwtGenerator {
     private final SecretKey key = Keys.hmacShaKeyFor(SecurityConstants.JWT_SECRET.getBytes());
 
     public String generateToken(Authentication authentication) {
-        String email = authentication.getName();
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String username = userDetails.getUsername();
         Date currentDate = new Date();
         Date expireDate = new Date(currentDate.getTime() + SecurityConstants.JWT_EXPIRATION);
-        User user = (User) authentication.getPrincipal();
-        List<String> roles = user.getRoles().stream()
-                .map(Role::getName)
+
+        List<String> roles = userDetails.getAuthorities().stream()
+                .map(Object::toString)
                 .collect(Collectors.toList());
 
         return Jwts.builder()
-                .setSubject(email)
+                .setSubject(username)
                 .setIssuedAt(currentDate)
                 .setExpiration(expireDate)
                 .signWith(key, SignatureAlgorithm.HS512)
