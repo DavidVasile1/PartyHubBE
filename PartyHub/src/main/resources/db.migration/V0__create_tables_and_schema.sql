@@ -1,7 +1,7 @@
 
 CREATE EXTENSION "uuid-ossp";
 
-CREATE TABLE customer_details (
+CREATE TABLE user_details (
     id UUID PRIMARY KEY,
     full_name VARCHAR(255) NOT NULL,
     age INT NOT NULL,
@@ -13,8 +13,8 @@ CREATE TABLE "user" (
     email VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     promo_code VARCHAR(255),
-    customer_details_id UUID,
-    FOREIGN KEY (customer_details_id) REFERENCES customer_details(id)
+    user_details_id UUID,
+    FOREIGN KEY (user_details_id) REFERENCES user_details(id)
 );
 
 CREATE TABLE role (
