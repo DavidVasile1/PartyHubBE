@@ -11,20 +11,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/profiles")
+@RequestMapping("/api/profiles")
 public class ProfileController {
 
     private final ProfileService profileService;
 
 
-    @GetMapping("/{email}")
+    @GetMapping("{email}")
     public ProfileDto getProfile(@PathVariable String email) {
         ProfileDto profile = profileService.getProfile(email);
 
-        if (profile != null) {
+
             return profile;
-        } else {
-            return new ProfileDto();
-        }
+
     }
 }

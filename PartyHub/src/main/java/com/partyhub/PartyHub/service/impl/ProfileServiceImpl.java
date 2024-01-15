@@ -6,35 +6,27 @@ import com.partyhub.PartyHub.entities.UserDetails;
 import com.partyhub.PartyHub.service.ProfileService;
 import com.partyhub.PartyHub.service.UserService;
 import com.partyhub.PartyHub.service.UserDetailsService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 @Service
+@RequiredArgsConstructor
 public class ProfileServiceImpl implements ProfileService {
 
     private final UserService userService;
     private final UserDetailsService userDetailsService;
 
-    public ProfileServiceImpl(UserService userService, UserDetailsService userDetailsService) {
-        this.userService = userService;
-        this.userDetailsService = userDetailsService;
-    }
 
     @Override
     public ProfileDto getProfile(String email) {
         Optional<User> userOptional = userService.findByEmail(email);
         if (userOptional.isEmpty()) {
-            return null;
+            throw new RuntimeException("User not found by email.");
         }
 
         User user = userOptional.get();
-        Optional<UserDetails> detailsOptional = userDetailsService.findById(user.getId());
-
-        if (detailsOptional.isEmpty()) {
-            return null;
-        }
-
-        UserDetails details = detailsOptional.get();
+        UserDetails details =user.getUserDetails();
 
         ProfileDto profile = new ProfileDto();
         profile.setUserId(user.getId());
