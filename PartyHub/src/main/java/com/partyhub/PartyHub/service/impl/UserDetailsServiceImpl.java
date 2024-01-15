@@ -6,6 +6,9 @@ import com.partyhub.PartyHub.service.UserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
@@ -24,5 +27,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         userDetails.setDiscountForNextTicket(0);
         save(userDetails);
         return userDetails;
+    }
+
+    @Override
+    public Optional<UserDetails> findById(UUID id) {
+        return userDetailsRepository.findById(id);
     }
 }
