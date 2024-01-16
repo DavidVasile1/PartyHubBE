@@ -8,4 +8,5 @@ public interface UserService {
     Optional<User> findByEmail(String email);
     Boolean existsByEmail(String email);
     void save(User user);
+    void delete(User user);
 }

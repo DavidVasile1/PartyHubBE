@@ -36,7 +36,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/user/**").hasAuthority("USER")
                 .requestMatchers("/api/scanner/**").hasAuthority("SCANNER")
                 .anyRequest()
-                .authenticated()
+                .permitAll()
                 .and()
                 .httpBasic();
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

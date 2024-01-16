@@ -33,4 +33,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public Optional<UserDetails> findById(UUID id) {
         return userDetailsRepository.findById(id);
     }
+
+    @Override
+    public void delete(UserDetails userDetails) {
+        userDetailsRepository.delete(userDetails);
+    }
 }
