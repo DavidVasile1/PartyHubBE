@@ -7,4 +7,5 @@ public interface ProfileService {
     ProfileDto getProfile(String email);
     void updateProfileDetails(String email, ProfileDto updatedProfile);
     public void deleteProfile(String email);
+    public void resetPassword(String email, String newPassword);
 }
