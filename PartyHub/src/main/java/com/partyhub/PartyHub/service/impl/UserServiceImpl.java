@@ -3,6 +3,7 @@ package com.partyhub.PartyHub.service.impl;
 import com.partyhub.PartyHub.entities.User;
 import com.partyhub.PartyHub.repository.UserRepository;
 import com.partyhub.PartyHub.service.UserService;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
