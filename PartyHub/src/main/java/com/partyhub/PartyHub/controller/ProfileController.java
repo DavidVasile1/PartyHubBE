@@ -51,4 +51,16 @@ public class ProfileController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete profile");
         }
     }
+
+    @PostMapping("reset-password/{email}")
+    public ResponseEntity<String> resetPassword(@PathVariable String email, @RequestBody String newPassword) {
+        try {
+            profileService.resetPassword(email, newPassword);
+            return ResponseEntity.ok("Password reset successfully");
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to reset password");
+        }
+    }
 }

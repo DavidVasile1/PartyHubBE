@@ -8,7 +8,9 @@ import com.partyhub.PartyHub.service.ProfileService;
 import com.partyhub.PartyHub.service.UserService;
 import com.partyhub.PartyHub.service.UserDetailsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 
 import java.util.Optional;
 
@@ -18,6 +20,7 @@ public class ProfileServiceImpl implements ProfileService {
 
     private final UserService userService;
     private final UserDetailsService userDetailsService;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public ProfileDto getProfile(String email) {
@@ -69,4 +72,19 @@ public class ProfileServiceImpl implements ProfileService {
         userDetailsService.delete(userDetails);
         userService.delete(user);
     }
+
+    @Override
+    public void resetPassword(String email, String newPassword) {
+        Optional<User> userOptional = userService.findByEmail(email);
+        if (userOptional.isEmpty()) {
+            throw new UserNotFoundException("User not found by email.");
+        }
+
+        User user = userOptional.get();
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        user.setPassword(encodedPassword);
+
+        userService.save(user);
+    }
+
 }
