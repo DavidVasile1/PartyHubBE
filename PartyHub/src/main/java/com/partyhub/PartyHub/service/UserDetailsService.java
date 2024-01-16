@@ -11,4 +11,5 @@ public interface UserDetailsService {
     UserDetails create(int age, String fullName);
 
     Optional<UserDetails> findById(UUID id);
+    void delete(UserDetails userDetails);
 }
