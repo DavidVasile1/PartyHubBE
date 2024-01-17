@@ -3,22 +3,26 @@ package com.partyhub.PartyHub.controller;
 import com.partyhub.PartyHub.dto.ProfileDto;
 import com.partyhub.PartyHub.exceptions.UserNotFoundException;
 import com.partyhub.PartyHub.service.ProfileService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/profiles")
+@RequestMapping("/api/user/profile")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class ProfileController {
 
     private final ProfileService profileService;
 
 
-    @GetMapping("{email}")
-    public ResponseEntity<ProfileDto>  getProfile(@PathVariable String email) {
+    @GetMapping
+    public ResponseEntity<ProfileDto>  getProfile() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
         try {
             ProfileDto profile = profileService.getProfile(email);
             return ResponseEntity.ok(profile);
@@ -29,8 +33,10 @@ public class ProfileController {
         }
     }
 
-    @PutMapping("{email}")
-    public ResponseEntity<String> updateProfile(@Valid @PathVariable String email, @RequestBody ProfileDto updatedProfile) {
+    @PutMapping
+    public ResponseEntity<String> updateProfile(@RequestBody ProfileDto updatedProfile) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
         try {
             profileService.updateProfileDetails(email, updatedProfile);
             return ResponseEntity.ok("Profile updated successfully");
@@ -41,8 +47,10 @@ public class ProfileController {
         }
     }
 
-    @DeleteMapping("{email}")
-    public ResponseEntity<String> deleteProfile(@PathVariable String email) {
+    @DeleteMapping
+    public ResponseEntity<String> deleteProfile() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
         try {
             profileService.deleteProfile(email);
             return ResponseEntity.ok("Profile deleted successfully");
@@ -53,8 +61,10 @@ public class ProfileController {
         }
     }
 
-    @PostMapping("reset-password/{email}")
-    public ResponseEntity<String> resetPassword(@PathVariable String email, @RequestBody String newPassword) {
+    @PostMapping("reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody String newPassword) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
         try {
             profileService.resetPassword(email, newPassword);
             return ResponseEntity.ok("Password reset successfully");
