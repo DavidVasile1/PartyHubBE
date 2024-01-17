@@ -3,6 +3,7 @@ package com.partyhub.PartyHub.controller;
 import com.partyhub.PartyHub.dto.ProfileDto;
 import com.partyhub.PartyHub.exceptions.UserNotFoundException;
 import com.partyhub.PartyHub.service.ProfileService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +30,7 @@ public class ProfileController {
     }
 
     @PutMapping("{email}")
-    public ResponseEntity<String> updateProfile(@PathVariable String email, @RequestBody ProfileDto updatedProfile) {
+    public ResponseEntity<String> updateProfile(@Valid @PathVariable String email, @RequestBody ProfileDto updatedProfile) {
         try {
             profileService.updateProfileDetails(email, updatedProfile);
             return ResponseEntity.ok("Profile updated successfully");
