@@ -3,6 +3,7 @@ package com.partyhub.PartyHub.controller;
 import com.partyhub.PartyHub.dto.ProfileDto;
 import com.partyhub.PartyHub.exceptions.UserNotFoundException;
 import com.partyhub.PartyHub.service.ProfileService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

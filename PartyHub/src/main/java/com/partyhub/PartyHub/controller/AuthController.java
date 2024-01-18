@@ -3,14 +3,15 @@ package com.partyhub.PartyHub.controller;
 import com.partyhub.PartyHub.dto.AuthResponseDto;
 import com.partyhub.PartyHub.dto.LoginDto;
 import com.partyhub.PartyHub.dto.RegisterDto;
-import com.partyhub.PartyHub.entities.UserDetails;
 import com.partyhub.PartyHub.entities.Role;
 import com.partyhub.PartyHub.entities.User;
+import com.partyhub.PartyHub.entities.UserDetails;
 import com.partyhub.PartyHub.security.JwtGenerator;
-import com.partyhub.PartyHub.service.UserDetailsService;
 import com.partyhub.PartyHub.service.RoleService;
+import com.partyhub.PartyHub.service.UserDetailsService;
 import com.partyhub.PartyHub.service.UserService;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -51,7 +52,7 @@ public class AuthController {
 
     @PostMapping("register")
     @Transactional
-    public ResponseEntity<String> register(@RequestBody RegisterDto registerDto){
+    public ResponseEntity<String> register(@Valid @RequestBody RegisterDto registerDto){
         if(userService.existsByEmail(registerDto.getEmail())){
             return new ResponseEntity<>("Email already used!", HttpStatus.BAD_REQUEST);
         }
