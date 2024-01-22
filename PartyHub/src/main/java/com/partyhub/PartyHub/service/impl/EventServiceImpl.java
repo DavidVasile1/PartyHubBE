@@ -6,6 +6,7 @@ import com.partyhub.PartyHub.service.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,5 +45,11 @@ public class EventServiceImpl implements EventService {
         } else {
             throw new RuntimeException("Event not found for this id :: " + id);
         }
+    }
+    @Override
+    public Event getNearestEvent() {
+        LocalDate today = LocalDate.now();
+        Optional<Event> event = eventRepository.findTopByDateAfterOrderByDateAsc(today);
+        return event.orElse(null);
     }
 }
