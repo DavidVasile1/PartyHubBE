@@ -7,7 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-    @RestController
+import java.util.UUID;
+
+@RestController
     @RequestMapping("/admin")
     public class AdminController {
         private final EventService eventService;
@@ -17,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
             this.eventService = eventService;
         }
 
-        @PostMapping("/events")
+        @PostMapping("/add")
         public ResponseEntity<Event> addEvent(@RequestBody Event event) {
             try {
                 Event savedEvent = eventService.addEvent(event);
@@ -26,4 +28,20 @@ import org.springframework.web.bind.annotation.*;
                 return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
+
+        @PutMapping("/edit/{id}")
+        public ResponseEntity<Event> editEvent(@PathVariable UUID id, @RequestBody Event eventDetails) {
+            try {
+                Event updatedEvent = eventService.editEvent(id, eventDetails);
+                if (updatedEvent != null) {
+                    return new ResponseEntity<>(updatedEvent, HttpStatus.OK);
+                } else {
+                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                }
+            } catch (Exception e) {
+                return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+
+
 }
