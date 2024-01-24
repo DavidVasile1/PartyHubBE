@@ -79,7 +79,8 @@ public class ProfileServiceImpl implements ProfileService {
         if (userOptional.isEmpty()) {
             throw new UserNotFoundException("User not found by email.");
         }
-
+        System.out.println(newPassword);
+        System.out.println("asdasdasd");
         User user = userOptional.get();
         String encodedPassword = passwordEncoder.encode(newPassword);
         user.setPassword(encodedPassword);

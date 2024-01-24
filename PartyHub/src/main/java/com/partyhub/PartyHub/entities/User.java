@@ -21,6 +21,8 @@ public class User {
     private String email;
     private String password;
     private String promoCode;
+    private boolean verified = false;
+    private UUID verificationToken;
     @OneToOne
     private UserDetails userDetails;
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)

@@ -13,6 +13,8 @@ CREATE TABLE "user" (
     email VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     promo_code VARCHAR(255),
+    verified BOOLEAN,
+    verification_token UUID,
     user_details_id UUID,
     FOREIGN KEY (user_details_id) REFERENCES user_details(id)
 );
