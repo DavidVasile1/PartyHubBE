@@ -42,7 +42,8 @@ CREATE TABLE event (
     details TEXT,
     price FLOAT,
     discount FLOAT,
-    tickets_number INT
+    tickets_number INT,
+    tickets_left INT
 );
 
 CREATE TABLE ticket (
