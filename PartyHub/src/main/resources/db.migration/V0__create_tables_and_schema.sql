@@ -35,8 +35,8 @@ CREATE TABLE user_roles (
 CREATE TABLE event (
     id UUID PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    main_banner VARCHAR(255),
-    secondary_banner VARCHAR(255),
+    main_banner OID,
+    secondary_banner OID,
     location VARCHAR(255),
     lng VARCHAR(255),
     lat VARCHAR(255),

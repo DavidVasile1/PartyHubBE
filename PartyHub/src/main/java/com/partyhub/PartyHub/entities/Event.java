@@ -17,8 +17,10 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
     private String name;
-    private String mainBanner;
-    private String secondaryBanner;
+    @Lob
+    private byte[] mainBanner;
+    @Lob
+    private byte[] secondaryBanner;
     private String location;
     private String lng;
     private String lat;

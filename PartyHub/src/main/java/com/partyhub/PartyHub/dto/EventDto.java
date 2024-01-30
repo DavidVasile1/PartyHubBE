@@ -1,5 +1,6 @@
 package com.partyhub.PartyHub.dto;
 
+import jakarta.persistence.Lob;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -11,8 +12,10 @@ import java.util.UUID;
 public class EventDto {
     private UUID id;
     private String name;
-    private String mainBanner;
-    private String secondaryBanner;
+    @Lob
+    private byte[] mainBanner;
+    @Lob
+    private byte[] secondaryBanner;
     private String location;
     private String lng;
     private String lat;
