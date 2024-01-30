@@ -3,7 +3,7 @@ package com.partyhub.PartyHub.service.impl;
 import com.partyhub.PartyHub.entities.User;
 import com.partyhub.PartyHub.repository.UserRepository;
 import com.partyhub.PartyHub.service.UserService;
-import lombok.Data;
+import com.partyhub.PartyHub.util.PromoCodeGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +30,13 @@ public class UserServiceImpl implements UserService {
     }
     @Override
     public void save(User user) {
+        userRepository.save(user);
+        String promoCode;
+        do {
+            promoCode = PromoCodeGenerator.generatePromoCode(user.getUserDetails().getFullName());
+        } while (userRepository.existsByPromoCode(promoCode));
+
+        user.setPromoCode(promoCode);
         userRepository.save(user);
     }
     @Override
