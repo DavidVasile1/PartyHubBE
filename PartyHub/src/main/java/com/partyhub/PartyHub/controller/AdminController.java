@@ -14,34 +14,35 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping("/api/admin")
 public class AdminController {
         private final EventService eventService;
         private final EventMapper eventMapper;
 
         @PostMapping("/event")
-        public ResponseEntity<Event> addEvent(@RequestBody EventDto eventDto)   {
+        public ResponseEntity<ApiResponse> addEvent(@RequestBody EventDto eventDto)   {
             try {
                 Event event = eventMapper.dtoToEvent(eventDto);
-                Event savedEvent = eventService.addEvent(event);
-                return new ResponseEntity<>(savedEvent, HttpStatus.CREATED);
+                eventService.addEvent(event);
+                return new ResponseEntity<>(new ApiResponse(true, "Event created!"), HttpStatus.CREATED);
             } catch (Exception e) {
-                return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+                return new ResponseEntity<>(new ApiResponse(false, "Event not created!"), HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
 
         @PutMapping("/event/{id}")
-        public ResponseEntity<Event> editEvent(@PathVariable UUID id, @RequestBody EventDto eventDto) {
+        public ResponseEntity<ApiResponse> editEvent(@PathVariable UUID id, @RequestBody EventDto eventDto) {
             try {
                 Event event = eventMapper.dtoToEvent(eventDto);
                 Event updatedEvent = eventService.editEvent(id, event);
                 if (updatedEvent != null) {
-                    return new ResponseEntity<>(updatedEvent, HttpStatus.OK);
+                    return new ResponseEntity<>(new ApiResponse(true, "Event updated!"), HttpStatus.OK);
                 } else {
-                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                    return new ResponseEntity<>(new ApiResponse(false, "Event not found!"), HttpStatus.NOT_FOUND);
                 }
             } catch (Exception e) {
-                return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+                return new ResponseEntity<>(new ApiResponse(false, "Event not updated!"), HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
 

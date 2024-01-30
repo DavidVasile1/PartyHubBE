@@ -38,6 +38,8 @@ CREATE TABLE event (
     main_banner VARCHAR(255),
     secondary_banner VARCHAR(255),
     location VARCHAR(255),
+    lng VARCHAR(255),
+    lat VARCHAR(255),
     date DATE,
     details TEXT,
     price FLOAT,

@@ -14,6 +14,8 @@ public class EventDto {
     private String mainBanner;
     private String secondaryBanner;
     private String location;
+    private String lng;
+    private String lat;
     private LocalDate date;
     private String details;
     private float price;
