@@ -11,4 +11,6 @@ public interface UserService {
     Boolean existsByEmail(String email);
     void save(User user);
     void delete(User user);
+    public void generateAndSetPromoCodeForUser(UUID userId);
+    public boolean isPromoCodeInUse(String promoCode);
 }
