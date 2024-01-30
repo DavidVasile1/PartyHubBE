@@ -12,9 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/user")
@@ -41,22 +39,65 @@ public class UserController {
         }
     }
 
-    @GetMapping("generate-promo-code")
+    @GetMapping("/generate-promo-code")
     public ResponseEntity<String> generatePromoCode() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String email = authentication.getName();
-            User user= userService.findByEmail(email).orElseThrow(()->new UserNotFoundException("User not found!"));
-            if (user != null) {
-                user.generatePromoCode();
-                userService.save(user);
+            User user = userService.findByEmail(email)
+                    .orElseThrow(() -> new UserNotFoundException("User not found!"));
+            if (user.getPromoCode() == null || user.getPromoCode().isEmpty()) {
+                userService.generateAndSetPromoCodeForUser(user.getId());
                 return new ResponseEntity<>(user.getPromoCode(), HttpStatus.OK);
             } else {
-                return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>("Promo code already exists", HttpStatus.BAD_REQUEST);
             }
         } catch (Exception e) {
             return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PutMapping("/edit-promo-code")
+    public ResponseEntity<String> editPromoCode(@RequestBody String newPromoCode) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            User user = userService.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found!"));
+
+            if (!isValidPromoCode(newPromoCode)) {
+                return new ResponseEntity<>("Invalid promo code format", HttpStatus.BAD_REQUEST);
+            }
+
+            if (userService.isPromoCodeInUse(newPromoCode)) {
+                return new ResponseEntity<>("Promo code already in use", HttpStatus.BAD_REQUEST);
+            }
+
+            user.setPromoCode(newPromoCode);
+            userService.save(user);
+            return new ResponseEntity<>("Promo code updated successfully", HttpStatus.OK);
+        } catch (UserNotFoundException e) {
+            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
+    private boolean isValidPromoCode(String promoCode) {
+        if (promoCode == null || promoCode.length() != 9) {
+            return false;
+        }
+
+        for (int i = 0; i < promoCode.length(); i++) {
+            char ch = promoCode.charAt(i);
+            if (!Character.isLowerCase(ch) && !Character.isDigit(ch)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
 
 }

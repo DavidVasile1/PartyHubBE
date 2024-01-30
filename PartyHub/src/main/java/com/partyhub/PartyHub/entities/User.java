@@ -1,7 +1,6 @@
 package com.partyhub.PartyHub.entities;
 
 
-import com.partyhub.PartyHub.util.PromoCodeGenerator;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -33,10 +32,5 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
     private List<Role> roles = new ArrayList<>();
 
-    public void generatePromoCode() {
-        if (userDetails != null && userDetails.getFullName() != null) {
-            this.promoCode = PromoCodeGenerator.generatePromoCode(userDetails.getFullName());
-        }
-    }
 
 }
