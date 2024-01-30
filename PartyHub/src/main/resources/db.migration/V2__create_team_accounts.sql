@@ -3,10 +3,11 @@ INSERT INTO user_details (id, full_name, age, discount_for_next_ticket) VALUES
 ('550e8400-e29b-41d4-a716-446655440001', 'Vasile David', 21, 0),
 ('550e8400-e29b-41d4-a716-446655440002', 'Nichifor Andra', 21, 0);
 
-INSERT INTO "user" (id, email, password, promo_code, user_details_id) VALUES
+INSERT INTO "user" (id, email, verified, password, promo_code, user_details_id) VALUES
 (
     '5b8b414f-53e0-440c-ac22-85c11ba4d1af',
     'danielmamara71@gmail.com',
+    true,
     '$2a$10$/JQAGOL4ifsFXfcUb2mV3ekUyliua2GtA2DlF.ZKEmLFA.S2m58Cy',
     NULL,
     NULL
@@ -15,6 +16,7 @@ INSERT INTO "user" (id, email, password, promo_code, user_details_id) VALUES
 (
     '373fe779-8e0b-47f3-abc9-d33c4612efd9',
     'gureanuraul24@gmail.com',
+    true,
     '$2a$10$p9wiwOdK/.dfT8KbhkVwuO3MhOO/3zyKEBCGuWgz6mF0Qxr38gqfq',
     NULL,
     NULL
@@ -23,6 +25,7 @@ INSERT INTO "user" (id, email, password, promo_code, user_details_id) VALUES
 (
     '06d36936-d212-4bfa-b0f8-0ba1466ce65c',
     'mischie.andrey@gmail.com',
+    true,
     '$2a$10$ZJ075ZNsBm/dxDisaYa/c.hI14vaFHi8c3uZLS8/s7nnTIhCvVT1W',
     NULL,
     '550e8400-e29b-41d4-a716-446655440000'
@@ -31,6 +34,7 @@ INSERT INTO "user" (id, email, password, promo_code, user_details_id) VALUES
 (
     'cec281ab-64e2-4cdd-bc40-b278a16e8e13',
     'vasiled027@gmail.com',
+    true,
     '$2a$10$IvJOHsxgb3AGiUzhaLYbee2WuG2wZLH/PmVk.iyC9YVahjC470i4a',
     NULL,
     '550e8400-e29b-41d4-a716-446655440001'
@@ -39,6 +43,7 @@ INSERT INTO "user" (id, email, password, promo_code, user_details_id) VALUES
 (
     'e2d82bd4-77f3-4ac7-a341-ecd00f02cb4b',
     'andra.nichifor2@gmail.com',
+    true,
     '$2a$10$ufw8uIKaav12YVD91ztsi.X7xuU3QbHc99g2r84CTUrbnERvjD7Ky',
     NULL,
     '550e8400-e29b-41d4-a716-446655440002'
@@ -47,6 +52,7 @@ INSERT INTO "user" (id, email, password, promo_code, user_details_id) VALUES
 (
     'd677f93b-5ede-4f70-92cc-533beadf15ca',
     'scanner1',
+    true,
     '$2a$10$ufw8uIKaav12YVD91ztsi.X7xuU3QbHc99g2r84CTUrbnERvjD7Ky',
     NULL,
     NULL
@@ -55,6 +61,7 @@ INSERT INTO "user" (id, email, password, promo_code, user_details_id) VALUES
 (
     '0582feb5-0f1d-434f-95da-e3a6ad932bb2',
     'scanner2',
+    true,
     '$2a$10$ufw8uIKaav12YVD91ztsi.X7xuU3QbHc99g2r84CTUrbnERvjD7Ky',
     NULL,
     NULL
@@ -63,6 +70,7 @@ INSERT INTO "user" (id, email, password, promo_code, user_details_id) VALUES
 (
     '39d6d309-494d-400c-91b6-b2e47afe7729',
     'scanner3',
+    true,
     '$2a$10$ufw8uIKaav12YVD91ztsi.X7xuU3QbHc99g2r84CTUrbnERvjD7Ky',
     NULL,
     NULL

@@ -1,38 +1,67 @@
 package com.partyhub.PartyHub.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.partyhub.PartyHub.dto.EventDto;
 import com.partyhub.PartyHub.entities.Event;
+import com.partyhub.PartyHub.mappers.EventMapper;
 import com.partyhub.PartyHub.service.EventService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.UUID;
 
 @RestController
-    @RequestMapping("/admin")
-    public class AdminController {
+@RequiredArgsConstructor
+@RequestMapping("/api/admin")
+public class AdminController {
         private final EventService eventService;
+        private final EventMapper eventMapper;
 
-        @Autowired
-        public AdminController(EventService eventService) {
-            this.eventService = eventService;
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @PostMapping("/event")
+    public ResponseEntity<Event> addEvent(@RequestParam("eventData") String eventDataJson,
+                                          @RequestParam("mainBanner") MultipartFile mainBannerFile,
+                                          @RequestParam("secondaryBanner") MultipartFile secondaryBannerFile) {
+        try {
+            EventDto eventDto = objectMapper.readValue(eventDataJson, EventDto.class);
+            Event event = eventMapper.dtoToEvent(eventDto);
+
+            byte[] mainBanner = processBannerFile(mainBannerFile);
+            byte[] secondaryBanner = processBannerFile(secondaryBannerFile);
+
+            event.setMainBanner(mainBanner);
+            event.setSecondaryBanner(secondaryBanner);
+
+            Event savedEvent = eventService.addEvent(event);
+            return new ResponseEntity<>(savedEvent, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
 
-        @PostMapping("/add")
-        public ResponseEntity<Event> addEvent(@RequestBody Event event) {
-            try {
-                Event savedEvent = eventService.addEvent(event);
-                return new ResponseEntity<>(savedEvent, HttpStatus.CREATED);
-            } catch (Exception e) {
-                return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    private byte[] processBannerFile(MultipartFile bannerFile) {
+        try {
+            if (bannerFile != null && !bannerFile.isEmpty()) {
+                return bannerFile.getBytes();
             }
+            return null;
+        } catch (IOException e) {
+            return null;
         }
+    }
 
-        @PutMapping("/edit/{id}")
-        public ResponseEntity<Event> editEvent(@PathVariable UUID id, @RequestBody Event eventDetails) {
+        @PutMapping("/event/{id}")
+        public ResponseEntity<Event> editEvent(@PathVariable UUID id, @RequestBody EventDto eventDto) {
             try {
-                Event updatedEvent = eventService.editEvent(id, eventDetails);
+                Event event = eventMapper.dtoToEvent(eventDto);
+                Event updatedEvent = eventService.editEvent(id, event);
                 if (updatedEvent != null) {
                     return new ResponseEntity<>(updatedEvent, HttpStatus.OK);
                 } else {

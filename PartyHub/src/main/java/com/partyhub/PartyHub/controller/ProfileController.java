@@ -34,44 +34,31 @@ public class ProfileController {
     }
 
     @PutMapping
-    public ResponseEntity<String> updateProfile(@RequestBody ProfileDto updatedProfile) {
+    public ResponseEntity<ApiResponse> updateProfile(@RequestBody ProfileDto updatedProfile) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         try {
             profileService.updateProfileDetails(email, updatedProfile);
-            return ResponseEntity.ok("Profile updated successfully");
+            return ResponseEntity.ok(new ApiResponse(true, "Profile updated successfully"));
         } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(false, "User not found"));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update profile");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse(false,  "Failed to update profile"));
         }
     }
 
     @DeleteMapping
-    public ResponseEntity<String> deleteProfile() {
+    public ResponseEntity<ApiResponse> deleteProfile() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         try {
             profileService.deleteProfile(email);
-            return ResponseEntity.ok("Profile deleted successfully");
+            return ResponseEntity.ok(new ApiResponse(true, "Account deleted successfully!"));
         } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(false,"User not found"));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete profile");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse(false, "Failed to delete profile"));
         }
     }
 
-    @PostMapping("reset-password")
-    public ResponseEntity<String> resetPassword(@RequestBody String newPassword) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-        try {
-            profileService.resetPassword(email, newPassword);
-            return ResponseEntity.ok("Password reset successfully");
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to reset password");
-        }
-    }
 }

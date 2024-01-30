@@ -13,6 +13,8 @@ CREATE TABLE "user" (
     email VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     promo_code VARCHAR(255),
+    verified BOOLEAN,
+    verification_token UUID,
     user_details_id UUID,
     FOREIGN KEY (user_details_id) REFERENCES user_details(id)
 );
@@ -31,16 +33,17 @@ CREATE TABLE user_roles (
 );
 
 CREATE TABLE event (
-    id UUID PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    main_banner VARCHAR(255),
-    secondary_banner VARCHAR(255),
-    location VARCHAR(255),
-    date DATE,
-    details TEXT,
-    price FLOAT,
-    discount FLOAT,
-    tickets_number INT
+                       id UUID PRIMARY KEY,
+                       name VARCHAR(255) NOT NULL,
+                       main_banner OID,
+                       secondary_banner OID,
+                       location VARCHAR(255),
+                       date DATE,
+                       details TEXT,
+                       price FLOAT,
+                       discount FLOAT,
+                       tickets_number INT,
+                       tickets_left INT
 );
 
 CREATE TABLE ticket (

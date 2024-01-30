@@ -1,20 +1,15 @@
-package com.partyhub.PartyHub.entities;
+package com.partyhub.PartyHub.dto;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Lob;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.UUID;
+
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-@Entity
-public class Event {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+public class EventDto {
     private UUID id;
     private String name;
     @Lob
@@ -27,7 +22,5 @@ public class Event {
     private float price;
     private float discount;
     private int ticketsNumber;
-    private int ticketsLeft = this.ticketsNumber;
-    @OneToMany(mappedBy = "event")
-    private List<Ticket> tickets;
+    private int ticketsLeft;
 }

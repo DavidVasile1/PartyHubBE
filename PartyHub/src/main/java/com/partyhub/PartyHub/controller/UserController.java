@@ -1,29 +1,29 @@
 package com.partyhub.PartyHub.controller;
 
+import com.partyhub.PartyHub.dto.EventDto;
 import com.partyhub.PartyHub.entities.Event;
+import com.partyhub.PartyHub.mappers.EventMapper;
 import com.partyhub.PartyHub.service.EventService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/user")
+@RequiredArgsConstructor
 public class UserController {
 
     private final EventService eventService;
+    private final EventMapper eventMapper;
 
-    @Autowired
-    public UserController(EventService eventService) {
-        this.eventService = eventService;
-    }
-
-    @GetMapping("/nearest-event")
-    public ResponseEntity<Event> getNearestEvent() {
+    @GetMapping("/event")
+    public ResponseEntity<EventDto> getNearestEvent() {
         try {
             Event nearestEvent = eventService.getNearestEvent();
-            if (nearestEvent != null) {
-                return new ResponseEntity<>(nearestEvent, HttpStatus.OK);
+            EventDto eventDto = eventMapper.eventToDto(nearestEvent);
+            if (eventDto != null) {
+                return new ResponseEntity<>(eventDto, HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
