@@ -52,4 +52,9 @@ public class EventServiceImpl implements EventService {
         Optional<Event> event = eventRepository.findTopByDateAfterOrderByDateAsc(today);
         return event.orElse(null);
     }
+
+    @Override
+    public Optional<Event> getEventById(UUID id) {
+        return eventRepository.findById(id);
+    }
 }

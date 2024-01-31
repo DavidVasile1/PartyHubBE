@@ -3,7 +3,7 @@ package com.partyhub.PartyHub.service.impl;
 import com.partyhub.PartyHub.entities.User;
 import com.partyhub.PartyHub.repository.UserRepository;
 import com.partyhub.PartyHub.service.UserService;
-import lombok.Data;
+import com.partyhub.PartyHub.util.PromoCodeGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +35,25 @@ public class UserServiceImpl implements UserService {
     @Override
     public void delete(User user) {
         userRepository.delete(user);
+    }
+
+    @Override
+    public void generateAndSetPromoCodeForUser(UUID userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        if (user.getPromoCode() == null || user.getPromoCode().isEmpty()) {
+            String promoCode;
+            do {
+                promoCode = PromoCodeGenerator.generatePromoCode(user.getUserDetails().getFullName());
+            } while (userRepository.existsByPromoCode(promoCode));
+
+            user.setPromoCode(promoCode);
+            userRepository.save(user);
+        }
+    }
+
+    @Override
+    public boolean isPromoCodeInUse(String promoCode) {
+        return userRepository.existsByPromoCode(promoCode);
     }
 }
 
