@@ -10,4 +10,6 @@ import java.util.UUID;
 public interface EventRepository extends JpaRepository<Event, UUID> {
     Optional<Event> findTopByDateAfterOrderByDateAsc(LocalDate date);
 
+
+
 }

@@ -2,6 +2,7 @@ package com.partyhub.PartyHub.controller;
 
 import com.partyhub.PartyHub.dto.EventDto;
 import com.partyhub.PartyHub.dto.EventPhotoDto;
+import com.partyhub.PartyHub.dto.EventSummaryDto;
 import com.partyhub.PartyHub.entities.Event;
 import com.partyhub.PartyHub.mappers.EventMapper;
 import com.partyhub.PartyHub.service.EventService;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -55,4 +57,6 @@ public class PublicController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
 }
