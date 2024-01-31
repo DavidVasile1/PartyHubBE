@@ -17,6 +17,8 @@ public class EventDto {
     @Lob
     private byte[] secondaryBanner;
     private String location;
+    private String lng;
+    private String lat;
     private LocalDate date;
     private String details;
     private float price;

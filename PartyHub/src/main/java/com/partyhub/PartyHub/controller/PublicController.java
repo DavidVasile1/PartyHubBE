@@ -15,9 +15,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/user")
 @RequiredArgsConstructor
-public class UserController {
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RequestMapping("/api/public")
+public class PublicController {
 
     private final UserService userService;
     private final EventService eventService;
