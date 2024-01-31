@@ -4,6 +4,7 @@ import com.partyhub.PartyHub.dto.EventDto;
 import com.partyhub.PartyHub.entities.Event;
 import com.partyhub.PartyHub.mappers.EventMapper;
 import com.partyhub.PartyHub.service.EventService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,8 @@ public class PublicController {
     private final EventService eventService;
     private final EventMapper eventMapper;
 
-    @GetMapping("/event")
+    @Transactional
+    @GetMapping("event")
     public ResponseEntity<EventDto> getNearestEvent() {
         try {
             Event nearestEvent = eventService.getNearestEvent();

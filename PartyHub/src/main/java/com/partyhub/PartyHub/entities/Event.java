@@ -18,12 +18,15 @@ public class Event {
     private UUID id;
     private String name;
     @Lob
+    @Basic(fetch = FetchType.LAZY)
     private byte[] mainBanner;
     @Lob
+    @Basic(fetch = FetchType.LAZY)
     private byte[] secondaryBanner;
     private String location;
-    private String lng;
-    private String lat;
+    private String city;
+    private float lng;
+    private float lat;
     private LocalDate date;
     private String details;
     private float price;
