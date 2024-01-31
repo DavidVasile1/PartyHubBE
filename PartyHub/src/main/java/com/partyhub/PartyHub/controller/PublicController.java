@@ -4,11 +4,13 @@ import com.partyhub.PartyHub.dto.EventDto;
 import com.partyhub.PartyHub.entities.Event;
 import com.partyhub.PartyHub.mappers.EventMapper;
 import com.partyhub.PartyHub.service.EventService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
@@ -16,11 +18,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/public")
 public class PublicController {
 
+
     private final EventService eventService;
     private final EventMapper eventMapper;
 
-    @Transactional
-    @GetMapping("event")
+
+    @GetMapping("/event")
     public ResponseEntity<EventDto> getNearestEvent() {
         try {
             Event nearestEvent = eventService.getNearestEvent();
@@ -34,4 +37,9 @@ public class PublicController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
+
+
+
 }
