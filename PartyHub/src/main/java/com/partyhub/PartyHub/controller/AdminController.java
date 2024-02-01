@@ -2,17 +2,18 @@ package com.partyhub.PartyHub.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.partyhub.PartyHub.dto.EventDto;
+import com.partyhub.PartyHub.dto.EventSummaryDto;
 import com.partyhub.PartyHub.entities.Event;
 import com.partyhub.PartyHub.mappers.EventMapper;
 import com.partyhub.PartyHub.service.EventService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -71,4 +72,9 @@ public class AdminController {
         }
     }
 
+    @GetMapping("/events")
+    public ResponseEntity<List<EventSummaryDto>> getAllEventSummaries() {
+        List<EventSummaryDto> eventSummaries = eventService.getAllEventSummaries();
+        return new ResponseEntity<>(eventSummaries, HttpStatus.OK);
+    }
 }

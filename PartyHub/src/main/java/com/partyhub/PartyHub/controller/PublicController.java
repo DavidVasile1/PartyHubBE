@@ -1,6 +1,8 @@
 package com.partyhub.PartyHub.controller;
 
 import com.partyhub.PartyHub.dto.EventDto;
+import com.partyhub.PartyHub.dto.EventPhotoDto;
+import com.partyhub.PartyHub.dto.EventSummaryDto;
 import com.partyhub.PartyHub.entities.Event;
 import com.partyhub.PartyHub.mappers.EventMapper;
 import com.partyhub.PartyHub.service.EventService;
@@ -13,6 +15,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 @RestController
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*", allowedHeaders = "*")
@@ -24,13 +30,29 @@ public class PublicController {
     private final EventMapper eventMapper;
 
     @Transactional
-    @GetMapping("event")
-    public ResponseEntity<EventDto> getNearestEvent() {
+    @GetMapping("/event/{id}")
+    public ResponseEntity<EventDto> getEvent(@PathVariable UUID id) {
+        try {
+            Optional<Event> event = eventService.getEventById(id);
+            if (event.isPresent()) {
+                Event event1 = event.get();
+                EventDto eventDto = eventMapper.eventToDto(event1);
+                return new ResponseEntity<>(eventDto, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/event")
+    public ResponseEntity<EventPhotoDto> getNearestEventPhoto() {
         try {
             Event nearestEvent = eventService.getNearestEvent();
-            EventDto eventDto = eventMapper.eventToDto(nearestEvent);
-            if (eventDto != null) {
-                return new ResponseEntity<>(eventDto, HttpStatus.OK);
+            EventPhotoDto eventPhotoDto = eventMapper.eventToEventPhotoDto(nearestEvent);
+            if (eventPhotoDto != null) {
+                return new ResponseEntity<>(eventPhotoDto, HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }

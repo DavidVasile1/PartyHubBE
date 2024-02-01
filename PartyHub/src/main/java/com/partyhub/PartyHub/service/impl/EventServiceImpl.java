@@ -1,5 +1,6 @@
 package com.partyhub.PartyHub.service.impl;
 
+import com.partyhub.PartyHub.dto.EventSummaryDto;
 import com.partyhub.PartyHub.entities.Event;
 import com.partyhub.PartyHub.repository.EventRepository;
 import com.partyhub.PartyHub.service.EventService;
@@ -7,8 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class EventServiceImpl implements EventService {
@@ -52,4 +55,16 @@ public class EventServiceImpl implements EventService {
         Optional<Event> event = eventRepository.findTopByDateAfterOrderByDateAsc(today);
         return event.orElse(null);
     }
+
+    @Override
+    public Optional<Event> getEventById(UUID id) {
+        return eventRepository.findById(id);
+    }
+    @Override
+    public List<EventSummaryDto> getAllEventSummaries() {
+        return eventRepository.findAll().stream()
+                .map(event -> new EventSummaryDto(event.getName(), event.getCity(), event.getDate()))
+                .collect(Collectors.toList());
+    }
+
 }

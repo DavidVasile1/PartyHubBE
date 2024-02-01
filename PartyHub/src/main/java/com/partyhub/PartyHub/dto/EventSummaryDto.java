@@ -1,14 +1,16 @@
 package com.partyhub.PartyHub.dto;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.util.UUID;
+
+import java.time.LocalDate;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class EventPhotoDto {
-    private UUID id;
+public class EventSummaryDto{
+    private String name;
     private String city;
-    private byte[] mainBanner;
+    private LocalDate date;
 }

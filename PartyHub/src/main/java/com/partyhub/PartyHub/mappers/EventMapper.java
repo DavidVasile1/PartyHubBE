@@ -1,6 +1,7 @@
 package com.partyhub.PartyHub.mappers;
 
 import com.partyhub.PartyHub.dto.EventDto;
+import com.partyhub.PartyHub.dto.EventPhotoDto;
 import com.partyhub.PartyHub.entities.Event;
 import com.partyhub.PartyHub.entities.Ticket;
 import org.springframework.stereotype.Component;
@@ -47,4 +48,14 @@ public class EventMapper {
                 ,list
                 );
     }
+
+    public EventPhotoDto eventToEventPhotoDto(Event event) {
+        EventPhotoDto dto = new EventPhotoDto();
+        dto.setId(event.getId());
+        dto.setCity(event.getCity());
+        dto.setMainBanner(event.getMainBanner());
+        return dto;
+    }
+
+
 }
