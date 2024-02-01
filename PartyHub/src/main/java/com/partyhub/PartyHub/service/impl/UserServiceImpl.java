@@ -1,5 +1,4 @@
 package com.partyhub.PartyHub.service.impl;
-
 import com.partyhub.PartyHub.entities.User;
 import com.partyhub.PartyHub.repository.UserRepository;
 import com.partyhub.PartyHub.service.UserService;
@@ -20,18 +19,29 @@ public class UserServiceImpl implements UserService {
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+  
     @Override
     public Optional<User> findByVerificationToken(UUID verificationToken) {
         return userRepository.findByVerificationToken(verificationToken);
     }
+  
     @Override
     public Boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
+  
     @Override
     public void save(User user) {
+        if (user.getPromoCode() == null || user.getPromoCode().isEmpty()) {
+            String promoCode;
+            do {
+                promoCode = PromoCodeGenerator.generatePromoCode(user.getUserDetails().getFullName());
+            } while (userRepository.existsByPromoCode(promoCode));
+            user.setPromoCode(promoCode);
+        }
         userRepository.save(user);
     }
+  
     @Override
     public void delete(User user) {
         userRepository.delete(user);
@@ -50,7 +60,7 @@ public class UserServiceImpl implements UserService {
             userRepository.save(user);
         }
     }
-
+  
     @Override
     public boolean isPromoCodeInUse(String promoCode) {
         return userRepository.existsByPromoCode(promoCode);

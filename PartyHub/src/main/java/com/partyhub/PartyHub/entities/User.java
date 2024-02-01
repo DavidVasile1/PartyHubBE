@@ -21,12 +21,16 @@ public class User {
     private String email;
     private String password;
     private String promoCode;
-    private boolean verified = false;
-    private UUID verificationToken;
     @OneToOne
     private UserDetails userDetails;
+
+    private boolean verified = false;
+    private UUID verificationToken;
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(name = "user_roles",joinColumns = @JoinColumn(name="user_id",referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id",referencedColumnName = "id"))
-    private List<Role> roles=new ArrayList<>();
+    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
+    private List<Role> roles = new ArrayList<>();
+
+
 }
