@@ -19,24 +19,24 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/promo-code")
-    public ResponseEntity<String> getPromoCode() {
+    public ResponseEntity<ApiResponse> getPromoCode() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String email = authentication.getName();
             User user = userService.findByEmail(email)
                     .orElseThrow(() -> new UserNotFoundException("User not found!"));
             if (user.getPromoCode() == null || user.getPromoCode().isEmpty()) {
-                return new ResponseEntity<>("Promo code does not exists", HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(new ApiResponse(false, "Promo code does not exists") , HttpStatus.BAD_REQUEST);
             } else {
-                return new ResponseEntity<>(user.getPromoCode(), HttpStatus.OK);
+                return new ResponseEntity<>(new ApiResponse(true, user.getPromoCode()) , HttpStatus.OK);
             }
         } catch (Exception e) {
-            return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse(false, "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping("/generate-promo-code")
-    public ResponseEntity<String> generatePromoCode() {
+    public ResponseEntity<ApiResponse> generatePromoCode() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String email = authentication.getName();
@@ -44,12 +44,12 @@ public class UserController {
                     .orElseThrow(() -> new UserNotFoundException("User not found!"));
             if (user.getPromoCode() == null || user.getPromoCode().isEmpty()) {
                 userService.generateAndSetPromoCodeForUser(user.getId());
-                return new ResponseEntity<>(user.getPromoCode(), HttpStatus.OK);
+                return new ResponseEntity<>(new ApiResponse(true, user.getPromoCode()), HttpStatus.OK);
             } else {
-                return new ResponseEntity<>("Promo code already exists", HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(new ApiResponse(false, "Promo code already exists") , HttpStatus.BAD_REQUEST);
             }
         } catch (Exception e) {
-            return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse(false, "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

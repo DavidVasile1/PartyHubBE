@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/api/admin/**").permitAll()
-                .requestMatchers("/api/user/**").hasAuthority("USER")
+                .requestMatchers("/api/user/**").permitAll()
                 .requestMatchers("/api/scanner/**").hasAuthority("SCANNER")
                 .anyRequest()
                 .permitAll()
