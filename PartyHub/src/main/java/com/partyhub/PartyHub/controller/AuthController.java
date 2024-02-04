@@ -89,7 +89,6 @@ public class AuthController {
     @GetMapping("reset-password/{email}")
     public ResponseEntity<ApiResponse> sendResetPasswordEmail(@PathVariable String email) {
         try{
-
         String clientUrl = "http://localhost:4200";
 
         User user = userService.findByEmail(email).orElseThrow(()->new UserNotFoundException("User not found!"));
