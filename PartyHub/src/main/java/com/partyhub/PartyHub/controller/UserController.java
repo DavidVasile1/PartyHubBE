@@ -18,6 +18,23 @@ public class UserController {
 
     private final UserService userService;
 
+    @GetMapping("/promo-code")
+    public ResponseEntity<String> getPromoCode() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            User user = userService.findByEmail(email)
+                    .orElseThrow(() -> new UserNotFoundException("User not found!"));
+            if (user.getPromoCode() == null || user.getPromoCode().isEmpty()) {
+                return new ResponseEntity<>("Promo code does not exists", HttpStatus.BAD_REQUEST);
+            } else {
+                return new ResponseEntity<>(user.getPromoCode(), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @GetMapping("/generate-promo-code")
     public ResponseEntity<String> generatePromoCode() {
         try {
@@ -36,7 +53,7 @@ public class UserController {
         }
     }
 
-    @PutMapping("/edit-promo-code")
+    @PutMapping("/promo-code")
     public ResponseEntity<String> editPromoCode(@RequestBody String newPromoCode) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
