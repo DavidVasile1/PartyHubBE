@@ -6,6 +6,7 @@ import com.partyhub.PartyHub.dto.EventSummaryDto;
 import com.partyhub.PartyHub.entities.Event;
 import com.partyhub.PartyHub.mappers.EventMapper;
 import com.partyhub.PartyHub.service.EventService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ public class AdminController {
     private final ObjectMapper objectMapper;
 
     @PostMapping("/event")
-    public ResponseEntity<Event> addEvent(@RequestParam("eventData") String eventDataJson,
+    public ResponseEntity<Event> addEvent(@Valid @RequestParam("eventData") String eventDataJson,
                                           @RequestParam("mainBanner") MultipartFile mainBannerFile,
                                           @RequestParam("secondaryBanner") MultipartFile secondaryBannerFile) {
         try {
