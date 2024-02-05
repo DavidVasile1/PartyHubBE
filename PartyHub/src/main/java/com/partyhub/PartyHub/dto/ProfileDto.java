@@ -20,4 +20,5 @@ public class ProfileDto {
     @Max(value = 100, message = "Age seems incorrect")
     private int age;
     private int discountForNextTicket;
+    private String promoCode;
 }
