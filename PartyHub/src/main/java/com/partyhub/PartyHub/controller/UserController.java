@@ -93,4 +93,14 @@ public class UserController {
 
         return true;
     }
+
+    @GetMapping("/check-promo-code")
+    public ResponseEntity<String> checkPromoCode(@RequestParam String promoCode) {
+        boolean exists = userService.doesPromoCodeExist(promoCode);
+        if (exists) {
+            return new ResponseEntity<>("Promo code exists", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("Promo code does not exist", HttpStatus.NOT_FOUND);
+        }
+    }
 }
