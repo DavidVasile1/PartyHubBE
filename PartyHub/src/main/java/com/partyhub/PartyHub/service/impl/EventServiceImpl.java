@@ -50,10 +50,10 @@ public class EventServiceImpl implements EventService {
         }
     }
     @Override
-    public Event getNearestEvent() {
+    public Optional<Event> getNearestEvent() {
         LocalDate today = LocalDate.now();
         Optional<Event> event = eventRepository.findTopByDateAfterOrderByDateAsc(today);
-        return event.orElse(null);
+        return event;
     }
 
     @Override

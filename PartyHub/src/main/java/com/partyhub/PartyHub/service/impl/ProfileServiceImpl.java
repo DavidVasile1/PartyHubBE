@@ -35,6 +35,7 @@ public class ProfileServiceImpl implements ProfileService {
         ProfileDto profile = new ProfileDto();
         profile.setUserId(user.getId());
         profile.setEmail(user.getEmail());
+        profile.setPromoCode(user.getPromoCode());
         profile.setFullName(details.getFullName());
         profile.setAge(details.getAge());
 

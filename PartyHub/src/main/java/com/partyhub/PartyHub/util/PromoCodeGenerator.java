@@ -19,6 +19,4 @@ public class PromoCodeGenerator {
 
         return (firstPart + secondPart + numbers).toLowerCase();
     }
-
-
 }
