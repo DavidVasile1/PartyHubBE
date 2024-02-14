@@ -1,15 +1,11 @@
 package com.partyhub.PartyHub.dto;
 
 import jakarta.persistence.Lob;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
 import java.util.UUID;
 
-@Data
-@AllArgsConstructor
 public class EventDto {
     private UUID id;
 
