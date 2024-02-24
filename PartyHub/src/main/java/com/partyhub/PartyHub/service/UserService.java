@@ -13,4 +13,5 @@ public interface UserService {
     void delete(User user);
     public void generateAndSetPromoCodeForUser(UUID userId);
     public boolean isPromoCodeInUse(String promoCode);
+    public boolean doesPromoCodeExist(String promoCode);
 }
