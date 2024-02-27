@@ -65,7 +65,7 @@ public class PublicController {
         }
     }
 
-    @GetMapping("/check-promo-code-or-discount")
+    @GetMapping("/check-promocode-or-discount")
     public ResponseEntity<?> checkPromoCodeOrDiscount(@RequestParam String code) {
         if (isValidPromoCode(code)) {
             Optional<User> userOptional = userService.findByPromoCode(code);
