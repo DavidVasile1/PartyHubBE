@@ -3,9 +3,11 @@ package com.partyhub.PartyHub.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.partyhub.PartyHub.dto.EventDto;
 import com.partyhub.PartyHub.dto.EventSummaryDto;
+import com.partyhub.PartyHub.entities.Discount;
 import com.partyhub.PartyHub.entities.Event;
 import com.partyhub.PartyHub.entities.Ticket;
 import com.partyhub.PartyHub.mappers.EventMapper;
+import com.partyhub.PartyHub.service.DiscountService;
 import com.partyhub.PartyHub.service.EmailSenderService;
 import com.partyhub.PartyHub.service.EventService;
 import com.partyhub.PartyHub.service.TicketService;
@@ -19,9 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -36,6 +36,8 @@ public class AdminController {
     private TicketService ticketService;
     @Autowired
     private EmailSenderService emailSenderService;
+    private DiscountService discountService;
+
 
 
     @PostMapping("/event")
@@ -81,7 +83,7 @@ public class AdminController {
                 return new ResponseEntity<>(new ApiResponse(false, "Event not found!"), HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
-                return new ResponseEntity<>(new ApiResponse(false, "Event not updated!"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse(false, "Event not updated!"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -105,5 +107,45 @@ public class AdminController {
         emailSenderService.sendEmail(principal.getName(), "Event Invitations", emailBody);
 
         return ResponseEntity.ok("Invitations generated and sent successfully.");
+    }
+
+    @PostMapping("/event/generate-discount")
+    public ResponseEntity<ApiResponse> createDiscount(@RequestParam UUID eventId,
+                                                      @RequestParam int discountValue) {
+        try {
+            Optional<Event> eventOptional = eventService.getEventById(eventId);
+            if (eventOptional.isEmpty()) {
+                return new ResponseEntity<>(new ApiResponse(false, "Event not found!"), HttpStatus.NOT_FOUND);
+            }
+
+
+            String code = generateRandomCode();
+
+            Discount discount = new Discount();
+            discount.setCode(code);
+            discount.setDiscountValue(discountValue);
+            discount.setEventId(eventId);
+
+            discountService.saveDiscount(discount);
+
+            return new ResponseEntity<>(new ApiResponse(true, code), HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(false, "Discount not created!"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    private String generateRandomCode() {
+        String CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789";
+        int CODE_LENGTH = 10;
+        StringBuilder sb = new StringBuilder(CODE_LENGTH);
+        Random random = new Random();
+
+        for (int i = 0; i < CODE_LENGTH; i++) {
+            int randomIndex = random.nextInt(CHARACTERS.length());
+            sb.append(CHARACTERS.charAt(randomIndex));
+        }
+
+        return sb.toString();
     }
 }
