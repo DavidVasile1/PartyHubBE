@@ -6,6 +6,8 @@ import com.partyhub.PartyHub.service.DiscountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class DiscountServiceImpl implements DiscountService {
@@ -14,5 +16,9 @@ public class DiscountServiceImpl implements DiscountService {
     @Override
     public Discount saveDiscount(Discount discount) {
         return discountRepository.save(discount);
+    }
+    @Override
+    public Optional<Discount> findByCode(String code) {
+        return discountRepository.findByCode(code);
     }
 }

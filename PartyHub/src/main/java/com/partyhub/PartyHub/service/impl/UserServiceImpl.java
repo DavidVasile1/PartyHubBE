@@ -70,5 +70,9 @@ public class UserServiceImpl implements UserService {
     public boolean doesPromoCodeExist(String promoCode) {
         return userRepository.findByPromoCode(promoCode).isPresent();
     }
+    @Override
+    public Optional<User> findByPromoCode(String promoCode) {
+        return userRepository.findByPromoCode(promoCode);
+    }
 }
 
