@@ -58,6 +58,12 @@ CREATE TABLE ticket (
     FOREIGN KEY (event_id) REFERENCES event(id)
 );
 
-
+CREATE TABLE discount (
+    id UUID PRIMARY KEY,
+    event_id UUID,
+    FOREIGN KEY (event_id) REFERENCES event(id),
+    code VARCHAR(255),
+    discount_value INT
+);
 
 
