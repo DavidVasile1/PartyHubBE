@@ -14,4 +14,5 @@ public interface UserService {
     public void generateAndSetPromoCodeForUser(UUID userId);
     public boolean isPromoCodeInUse(String promoCode);
     public boolean doesPromoCodeExist(String promoCode);
+    Optional<User> findByPromoCode(String promoCode);
 }
