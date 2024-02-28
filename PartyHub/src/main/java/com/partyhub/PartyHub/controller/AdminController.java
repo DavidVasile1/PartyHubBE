@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -147,5 +148,17 @@ public class AdminController {
         }
 
         return sb.toString();
+    }
+
+    @GetMapping("/events/upcoming")
+    public ResponseEntity<List<EventSummaryDto>> getUpcomingEvents() {
+        LocalDate currentDate = LocalDate.now();
+        List<EventSummaryDto> upcomingEvents = eventService.getUpcomingEvents()
+                .stream()
+                .filter(event -> event.getDate().isAfter(currentDate) || event.getDate().isEqual(currentDate))
+                .map(event -> new EventSummaryDto(event.getId(), event.getName(), event.getCity()))
+                .collect(Collectors.toList());
+
+        return new ResponseEntity<>(upcomingEvents, HttpStatus.OK);
     }
 }

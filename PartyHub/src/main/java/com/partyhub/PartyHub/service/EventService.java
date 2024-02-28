@@ -13,6 +13,7 @@ public interface EventService {
     Optional<Event> getNearestEvent();
     Optional<Event> getEventById(UUID id);
     public List<EventSummaryDto> getAllEventSummaries();
+    List<EventSummaryDto> getUpcomingEvents();
 
 }
 
