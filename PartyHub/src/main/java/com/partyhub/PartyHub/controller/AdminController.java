@@ -94,7 +94,7 @@ public class AdminController {
     }
 
     @PostMapping("/invites")
-    public ResponseEntity<?> generateAndSendInvites(@RequestBody Integer numberOfInvites, Principal principal) {
+    public ResponseEntity<?> generateAndSendInvites(@RequestBody Integer numberOfInvites) {
         List<Ticket> invites = new ArrayList<>();
         for (int i = 0; i < numberOfInvites; i++) {
             Ticket invite = new Ticket(UUID.randomUUID(), null, 0, "invite", null);
@@ -104,7 +104,7 @@ public class AdminController {
         String emailBody = invites.stream()
                 .map(invite -> "Invitation Code: " + invite.getId().toString())
                 .collect(Collectors.joining("\n"));
-        emailSenderService.sendEmail(principal.getName(), "Event Invitations", emailBody);
+        emailSenderService.sendEmail("danielmamara71@gmail.com", "Event Invitations", emailBody);
 
         return ResponseEntity.ok("Invitations generated and sent successfully.");
     }

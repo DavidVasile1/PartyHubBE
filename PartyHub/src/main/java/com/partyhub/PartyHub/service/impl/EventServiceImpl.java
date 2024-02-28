@@ -63,7 +63,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public List<EventSummaryDto> getAllEventSummaries() {
         return eventRepository.findAll().stream()
-                .map(event -> new EventSummaryDto(event.getName(), event.getCity(), event.getDate()))
+                .map(event -> new EventSummaryDto( event.getId(), event.getName(), event.getCity(), event.getDate()))
                 .collect(Collectors.toList());
     }
 
