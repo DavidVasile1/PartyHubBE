@@ -1,6 +1,10 @@
 package com.partyhub.PartyHub.service.impl;
+
+import com.partyhub.PartyHub.entities.Event;
 import com.partyhub.PartyHub.entities.User;
+import com.partyhub.PartyHub.entities.UserDetails;
 import com.partyhub.PartyHub.repository.UserRepository;
+import com.partyhub.PartyHub.service.EventService;
 import com.partyhub.PartyHub.service.UserService;
 import com.partyhub.PartyHub.util.PromoCodeGenerator;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +18,7 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final EventService eventService;
 
     @Override
     public Optional<User> findByEmail(String email) {
@@ -73,6 +78,23 @@ public class UserServiceImpl implements UserService {
     @Override
     public Optional<User> findByPromoCode(String promoCode) {
         return userRepository.findByPromoCode(promoCode);
+    }
+
+    public void increaseDiscountForNextTicket(String email, UUID eventId) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+
+        Event event = eventService.getEventById(eventId)
+                .orElseThrow(() -> new IllegalArgumentException("Event not found with ID: " + eventId));
+
+        UserDetails userDetails = user.getUserDetails();
+        if (userDetails != null) {
+            int discountAsInt = (int) event.getDiscount();
+            userDetails.setDiscountForNextTicket(discountAsInt);
+            userRepository.save(user);
+        } else {
+            throw new IllegalStateException("UserDetails not found for user with email: " + email);
+        }
     }
 }
 

@@ -15,4 +15,6 @@ public interface UserService {
     public boolean isPromoCodeInUse(String promoCode);
     public boolean doesPromoCodeExist(String promoCode);
     Optional<User> findByPromoCode(String promoCode);
+    public void increaseDiscountForNextTicket(String email, UUID eventId);
+
 }
