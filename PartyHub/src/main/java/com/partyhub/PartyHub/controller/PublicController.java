@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -65,26 +66,31 @@ public class PublicController {
         }
     }
 
-    @GetMapping("/check-promocode-or-discount")
-    public ResponseEntity<?> checkPromoCodeOrDiscount(@RequestParam String code) {
-        if (isValidPromoCode(code)) {
-            Optional<User> userOptional = userService.findByPromoCode(code);
-            if (userOptional.isPresent()) {
-                User user = userOptional.get();
-                String fullName = user.getUserDetails().getFullName();
-                return ResponseEntity.ok("Promo code belongs to user: " + fullName);
-            } else {
-                return ResponseEntity.notFound().build();
+    @PostMapping("/apply-promocode-or-discount")
+    public ResponseEntity<ApiResponse> checkPromoCodeOrDiscount(@RequestParam String code) {
+        if(code.length() == 9){
+            if (isValidPromoCode(code)) {
+                Optional<User> userOptional = userService.findByPromoCode(code);
+                if (userOptional.isPresent()) {
+                    User user = userOptional.get();
+                    String email = user.getEmail();
+                    return new ResponseEntity<>(new ApiResponse(true, email), HttpStatus.OK);
+                } else {
+                    return new ResponseEntity<>(new ApiResponse(false, "Not a valid promocode"), HttpStatus.NOT_FOUND);
+                }
             }
-        } else {
+        }else{
+            if (code.length() == 10){
             Optional<Discount> discountOptional = discountService.findByCode(code);
-            if (discountOptional.isPresent()) {
-                Discount discount = discountOptional.get();
-                return ResponseEntity.ok("Discount value: " + discount.getDiscountValue());
-            } else {
-                return ResponseEntity.notFound().build();
+                if (discountOptional.isPresent()) {
+                    Discount discount = discountOptional.get();
+                    return new ResponseEntity<>( new ApiResponse(true, String.valueOf(discount.getDiscountValue())), HttpStatus.OK);
+                } else {
+                    return new ResponseEntity<>(new ApiResponse(false, "Not a valid discount"), HttpStatus.NOT_FOUND);
+                }
             }
         }
+        return new ResponseEntity<>(new ApiResponse(false, "Not a valid form"), HttpStatus.NOT_FOUND);
     }
 
     private boolean isValidPromoCode(String promoCode) {
@@ -100,6 +106,17 @@ public class PublicController {
         }
 
         return true;
+    }
+    @GetMapping("/event-price/{id}")
+    public ResponseEntity<BigDecimal> getEventPrice(@PathVariable UUID id) {
+        Optional<Event> eventOptional = eventService.getEventById(id);
+        if (eventOptional.isPresent()) {
+            Event event = eventOptional.get();
+            BigDecimal price = BigDecimal.valueOf(event.getPrice());
+            return new ResponseEntity<>(price, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
     }
 
 }
