@@ -32,11 +32,9 @@ public class AdminController {
     private final EventService eventService;
     private final EventMapper eventMapper;
     private final ObjectMapper objectMapper;
-    @Autowired
-    private TicketService ticketService;
-    @Autowired
-    private EmailSenderService emailSenderService;
-    private DiscountService discountService;
+    private final TicketService ticketService;
+    private final EmailSenderService emailSenderService;
+    private final DiscountService discountService;
 
 
 
@@ -109,7 +107,7 @@ public class AdminController {
         return ResponseEntity.ok("Invitations generated and sent successfully.");
     }
 
-    @PostMapping("/event/generate-discount")
+    @PostMapping("/discount")
     public ResponseEntity<ApiResponse> createDiscount(@RequestParam UUID eventId,
                                                       @RequestParam int discountValue) {
         try {
