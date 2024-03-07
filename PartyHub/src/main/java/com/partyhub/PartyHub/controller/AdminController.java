@@ -97,7 +97,7 @@ public class AdminController {
         List<Ticket> invites = new ArrayList<>();
         for (int i = 0; i < numberOfInvites; i++) {
             Ticket invite = new Ticket(UUID.randomUUID(), null, 0, "invite", null);
-            invites.add(ticketService.saveInvite(invite));
+            invites.add(ticketService.saveTicket(invite));
         }
 
         String emailBody = invites.stream()
