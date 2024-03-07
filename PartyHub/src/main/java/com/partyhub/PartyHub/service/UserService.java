@@ -17,4 +17,5 @@ public interface UserService {
     Optional<User> findByPromoCode(String promoCode);
     public void increaseDiscountForNextTicket(String email, UUID eventId);
 
+
 }

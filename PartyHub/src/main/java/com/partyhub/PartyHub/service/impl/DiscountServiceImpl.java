@@ -21,4 +21,9 @@ public class DiscountServiceImpl implements DiscountService {
     public Optional<Discount> findByCode(String code) {
         return discountRepository.findByCode(code);
     }
+
+    @Override
+    public void deleteDiscountByCode(String code) {
+        discountRepository.deleteByCode(code);
+    }
 }
