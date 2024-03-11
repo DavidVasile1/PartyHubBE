@@ -27,6 +27,7 @@ public class TicketServiceImpl implements TicketService {
         return ticketRepository.save(ticket);
     }
 
+    @Override
     public Ticket generateAndSaveTicketForEvent(float pricePaid, String type, UUID eventId, LocalDate chosenDate) {
         Optional<Event> eventOptional = eventRepository.findById(eventId);
 
