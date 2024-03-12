@@ -3,6 +3,7 @@ package com.partyhub.PartyHub.service.impl;
 
 import com.partyhub.PartyHub.entities.Event;
 import com.partyhub.PartyHub.entities.Ticket;
+import com.partyhub.PartyHub.exceptions.EventNotFoundException;
 import com.partyhub.PartyHub.repository.EventRepository;
 import com.partyhub.PartyHub.repository.TicketRepository;
 import com.partyhub.PartyHub.service.TicketService;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -27,21 +29,25 @@ public class TicketServiceImpl implements TicketService {
         return ticketRepository.save(ticket);
     }
 
-    public Ticket generateAndSaveTicketForEvent(float pricePaid, String type, UUID eventId, LocalDate chosenDate) {
-        Optional<Event> eventOptional = eventRepository.findById(eventId);
+    @Override
+    public Ticket generateAndSaveTicketForEvent(float pricePaid, String type, UUID eventId, LocalDateTime validationDate) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new EventNotFoundException("Event not found with ID: " + eventId));
 
-        if (eventOptional.isPresent()) {
-            Event event = eventOptional.get();
 
-            Ticket newTicket = new Ticket();
-            newTicket.setValidationDate(chosenDate);
-            newTicket.setPricePaid(pricePaid);
-            newTicket.setType(type);
-            newTicket.setEvent(event);
+        Ticket ticket = new Ticket();
+        ticket.setValidationDate(validationDate);
+        ticket.setPricePaid(pricePaid);
+        ticket.setType(type);
+        ticket.setEvent(event);
 
-            return ticketRepository.save(newTicket);
-        } else {
-            throw new IllegalArgumentException("Event with ID " + eventId + " not found");
-        }
+
+        return ticketRepository.save(ticket);
     }
+    @Override
+    public Optional<Ticket> findById(UUID ticketId) {
+        return ticketRepository.findById(ticketId);
+
+    }
+
 }

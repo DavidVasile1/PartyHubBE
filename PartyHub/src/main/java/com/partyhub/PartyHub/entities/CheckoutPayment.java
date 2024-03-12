@@ -2,13 +2,16 @@ package com.partyhub.PartyHub.entities;
 
 import lombok.Data;
 
+import java.util.UUID;
+
 @Data
 public class CheckoutPayment {
-    private String name;
-    private String currency;
-    private String successUrl;
-    private String cancelUrl;
-    private long amount;
-    private long quantity;
+
+    private UUID eventId;
+    private String token;
+    private String userEmail;
+    private String referalEmail;
+    private String discountCode;
+    private int quantity;
 
 }

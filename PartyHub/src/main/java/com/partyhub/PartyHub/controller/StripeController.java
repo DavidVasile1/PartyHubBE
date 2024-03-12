@@ -1,9 +1,14 @@
 package com.partyhub.PartyHub.controller;
 import com.google.gson.Gson;
 import com.partyhub.PartyHub.entities.CheckoutPayment;
+import com.partyhub.PartyHub.entities.Event;
+import com.partyhub.PartyHub.entities.Ticket;
+import com.partyhub.PartyHub.exceptions.EventNotFoundException;
+import com.partyhub.PartyHub.service.*;
 import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,52 +16,99 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.stripe.Stripe;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping(value = "/api")
 public class StripeController {
 
+    private final DiscountService discountService;
+    private final UserService userService;
+    private final TicketService ticketService;
+    private final EmailSenderService emailSenderService;
+    private final EventService eventService;
     private static Gson gson = new Gson();
 
     private static void init() {
         Stripe.apiKey = "sk_test_51OjlkICogk4f4bM9U9BxTLIL2PPn0PBs2PA8AGnMcphk7BuqrCdD87c0XegnKMeK4WnayiL0O1vstsS9cwpTPkNb00XaZ8fJIo";
     }
 
+
     @PostMapping("/payment")
-    /**
-     * Payment with Stripe checkout page
-     *
-     * @throws StripeException
-     */
     public String paymentWithCheckoutPage(@RequestBody CheckoutPayment payment) throws StripeException {
-        // We initilize stripe object with the api key
-        init();
-        // We create a  stripe session parameters
-        SessionCreateParams params = SessionCreateParams.builder()
-                // We will use the credit card payment method
-                .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
-                .setMode(SessionCreateParams.Mode.PAYMENT).setSuccessUrl(payment.getSuccessUrl())
-                .setCancelUrl(
-                        payment.getCancelUrl())
-                .addLineItem(
-                        SessionCreateParams.LineItem.builder().setQuantity(payment.getQuantity())
-                                .setPriceData(
-                                        SessionCreateParams.LineItem.PriceData.builder()
-                                                .setCurrency(payment.getCurrency()).setUnitAmount(payment.getAmount())
-                                                .setProductData(SessionCreateParams.LineItem.PriceData.ProductData
-                                                        .builder().setName(payment.getName()).build())
-                                                .build())
-                                .build())
-                .build();
-        // create a stripe session
-        Session session = Session.create(params);
-        Map<String, String> responseData = new HashMap<>();
-        // We get the sessionId and we putted inside the response data you can get more info from the session object
-        responseData.put("id", session.getId());
-        // We can return only the sessionId as a String
-        return gson.toJson(responseData);
+        Event event = eventService.getEventById(payment.getEventId())
+                .orElseThrow(() -> new EventNotFoundException("Event not found for id: " + payment.getEventId()));
+        long eventPrice = Math.round(event.getPrice() * 100);
+        long discountAmount = calculateDiscountAmount(payment, event);
+        long totalAmount = calculateTotalAmount(eventPrice, payment.getQuantity(), discountAmount);
+        Session session = createStripeSession(payment, totalAmount, event);
+        processPostPaymentActions(payment, totalAmount, event);
+        return gson.toJson(Map.of("id", session.getId()));
     }
 
+    private long calculateDiscountAmount(CheckoutPayment payment, Event event) {
+        if (!payment.getReferalEmail().isEmpty() && !payment.getDiscountCode().isEmpty()) {
+            return discountService.findByCode(payment.getDiscountCode())
+                    .map(discount -> Math.round(discount.getDiscountValue() * 100))
+                    .orElse(Math.round(event.getDiscount() * 100));
+        }
+        return Math.round(event.getDiscount() * 100);
+    }
+
+    private long calculateTotalAmount(long eventPrice, int quantity, long discountAmount) {
+        long totalAmount = eventPrice * quantity - discountAmount;
+        return Math.max(totalAmount, 0);
+    }
+
+    private Session createStripeSession(CheckoutPayment payment, long totalAmount, Event event) throws StripeException {
+        SessionCreateParams params = SessionCreateParams.builder()
+                .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
+                .setMode(SessionCreateParams.Mode.PAYMENT)
+                .setSuccessUrl("http://yourdomain.com/success")
+                .setCancelUrl("http://yourdomain.com/cancel")
+                .addLineItem(SessionCreateParams.LineItem.builder()
+                        .setQuantity(Long.valueOf(payment.getQuantity()))
+                        .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
+                                .setCurrency("RON")
+                                .setUnitAmount(totalAmount)
+                                .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                        .setName("Ticket for " + event.getName())
+                                        .build())
+                                .build())
+                        .build())
+                .build();
+        return Session.create(params);
+    }
+
+    private void processPostPaymentActions(CheckoutPayment payment, long totalAmount, Event event) {
+        float pricePaid = totalAmount / 100.0f;
+
+        LocalDateTime now = LocalDateTime.now();
+
+        Ticket ticket = ticketService.generateAndSaveTicketForEvent(pricePaid, "Standard", payment.getEventId(), now);
+        String emailBody = constructEmailBody(ticket, event, pricePaid);
+        emailSenderService.sendEmail(payment.getUserEmail(), "Your Ticket Confirmation", emailBody);
+
+        if (!payment.getDiscountCode().isEmpty()) {
+            discountService.deleteDiscountByCode(payment.getDiscountCode());
+        }
+        if (!payment.getReferalEmail().isEmpty()) {
+            userService.increaseDiscountForNextTicket(payment.getReferalEmail(), payment.getEventId());
+        }
+    }
+
+    private String constructEmailBody(Ticket ticket, Event event, float pricePaid) {
+        return String.format(
+                "Thank you for your purchase! Your ticket for %s is confirmed.\n\nTicket details:\n- Event: %s\n- Date: %s\n- Location: %s\n- Price: $%.2f\n\nWe look forward to seeing you at the event!",
+                event.getName(), event.getName(), event.getDate(), event.getLocation(), pricePaid
+        );
+    }
+
+
 }
+

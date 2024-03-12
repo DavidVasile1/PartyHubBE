@@ -135,6 +135,11 @@
 			<artifactId>stripe-java</artifactId>
 			<version>20.41.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.antlr</groupId>
+			<artifactId>antlr4-runtime</artifactId>
+			<version>4.13.0</version>
+		</dependency>
 
 	</dependencies>
 
