@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.stripe.Stripe;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -86,8 +87,10 @@ public class StripeController {
 
     private void processPostPaymentActions(CheckoutPayment payment, long totalAmount, Event event) {
         float pricePaid = totalAmount / 100.0f;
-        LocalDate chosenDate = LocalDate.now();
-        Ticket ticket = ticketService.generateAndSaveTicketForEvent(pricePaid, "Standard", payment.getEventId(), chosenDate);
+
+        LocalDateTime now = LocalDateTime.now();
+
+        Ticket ticket = ticketService.generateAndSaveTicketForEvent(pricePaid, "Standard", payment.getEventId(), now);
         String emailBody = constructEmailBody(ticket, event, pricePaid);
         emailSenderService.sendEmail(payment.getUserEmail(), "Your Ticket Confirmation", emailBody);
 
@@ -105,6 +108,7 @@ public class StripeController {
                 event.getName(), event.getName(), event.getDate(), event.getLocation(), pricePaid
         );
     }
+
 
 }
 
