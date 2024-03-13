@@ -6,12 +6,10 @@ import com.partyhub.PartyHub.dto.EventStatisticsDTO;
 import com.partyhub.PartyHub.dto.EventSummaryDto;
 import com.partyhub.PartyHub.entities.Discount;
 import com.partyhub.PartyHub.entities.Event;
+import com.partyhub.PartyHub.entities.Statistics;
 import com.partyhub.PartyHub.entities.Ticket;
 import com.partyhub.PartyHub.mappers.EventMapper;
-import com.partyhub.PartyHub.service.DiscountService;
-import com.partyhub.PartyHub.service.EmailSenderService;
-import com.partyhub.PartyHub.service.EventService;
-import com.partyhub.PartyHub.service.TicketService;
+import com.partyhub.PartyHub.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +35,7 @@ public class AdminController {
     private final TicketService ticketService;
     private final EmailSenderService emailSenderService;
     private final DiscountService discountService;
+    private StatisticsService statisticsService;
 
 
 
@@ -94,13 +93,25 @@ public class AdminController {
         return new ResponseEntity<>(eventSummaries, HttpStatus.OK);
     }
 
-    @PostMapping("/invites")
-    public ResponseEntity<?> generateAndSendInvites(@RequestBody Integer numberOfInvites) {
+    @PostMapping("/events/{eventId}/invites")
+    public ResponseEntity<?> generateAndSendInvites(@PathVariable UUID eventId, @RequestBody Integer numberOfInvites) {
+        Event event = eventService.getEventById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found with ID: " + eventId));
+
         List<Ticket> invites = new ArrayList<>();
         for (int i = 0; i < numberOfInvites; i++) {
-            Ticket invite = new Ticket(UUID.randomUUID(), null, 0, "invite", null);
+            Ticket invite = new Ticket(UUID.randomUUID(),null, 0, "invite", event);
             invites.add(ticketService.saveTicket(invite));
         }
+
+        Statistics stats = event.getStatistics();
+        if (stats == null) {
+            stats = new Statistics();
+            stats.setEvent(event);
+            event.setStatistics(stats);
+        }
+        stats.setGeneratedInvites(stats.getGeneratedInvites() + numberOfInvites);
+        statisticsService.save(stats);
 
         String emailBody = invites.stream()
                 .map(invite -> "Invitation Code: " + invite.getId().toString())

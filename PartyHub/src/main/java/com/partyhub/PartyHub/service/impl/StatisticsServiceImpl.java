@@ -21,7 +21,10 @@ public class StatisticsServiceImpl implements StatisticsService {
         return statisticsRepository.findByEventId(eventId);
     }
 
-
+    @Override
+    public Statistics save(Statistics statistics) {
+        return statisticsRepository.save(statistics);
+    }
 
     }
 
