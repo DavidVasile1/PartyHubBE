@@ -2,6 +2,7 @@ package com.partyhub.PartyHub.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.partyhub.PartyHub.dto.EventDto;
+import com.partyhub.PartyHub.dto.EventStatisticsDTO;
 import com.partyhub.PartyHub.dto.EventSummaryDto;
 import com.partyhub.PartyHub.entities.Discount;
 import com.partyhub.PartyHub.entities.Event;
@@ -36,6 +37,7 @@ public class AdminController {
     private final TicketService ticketService;
     private final EmailSenderService emailSenderService;
     private final DiscountService discountService;
+
 
 
 
@@ -159,4 +161,14 @@ public class AdminController {
 
         return new ResponseEntity<>(upcomingEvents, HttpStatus.OK);
     }
+
+    @GetMapping("/event/{eventId}/data")
+    public ResponseEntity<?> getEventData(@PathVariable UUID eventId) {
+        Optional<EventStatisticsDTO> eventStatisticsDTO = eventService.getEventStatisticsDTO(eventId);
+
+        return eventStatisticsDTO
+                .map(dto -> ResponseEntity.ok(dto))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
 }

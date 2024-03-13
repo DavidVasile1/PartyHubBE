@@ -33,6 +33,8 @@ public class Event {
     private float discount;
     private int ticketsNumber;
     private int ticketsLeft = this.ticketsNumber;
+    @OneToOne(mappedBy = "event", cascade = CascadeType.ALL)
+    private Statistics statistics;
     @OneToMany(mappedBy = "event")
     private List<Ticket> tickets;
 }

@@ -7,6 +7,14 @@ CREATE TABLE user_details (
     age INT NOT NULL,
     discount_for_next_ticket INT
 );
+CREATE TABLE statistics (
+                            id UUID PRIMARY KEY,
+                            tickets_sold INT,
+                            money_earned NUMERIC,
+                            generated_invites INT,
+                            ticket_based_attendees INT,
+                            invitation_based_attendees INT
+);
 
 CREATE TABLE "user" (
     id UUID PRIMARY KEY,
@@ -51,7 +59,7 @@ CREATE TABLE event (
 
 CREATE TABLE ticket (
     id UUID PRIMARY KEY,
-    validation_date DATE,
+    validation_date TIMESTAMP,
     price_paid FLOAT,
     type VARCHAR(255),
     event_id UUID,
