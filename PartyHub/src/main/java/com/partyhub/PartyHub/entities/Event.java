@@ -2,6 +2,7 @@ package com.partyhub.PartyHub.entities;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +12,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Entity
 public class Event {
     @Id
@@ -33,6 +35,8 @@ public class Event {
     private float discount;
     private int ticketsNumber;
     private int ticketsLeft = this.ticketsNumber;
+    @OneToOne(mappedBy = "event", cascade = CascadeType.ALL)
+    private Statistics statistics;
     @OneToMany(mappedBy = "event")
     private List<Ticket> tickets;
 }

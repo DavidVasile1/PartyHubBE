@@ -1,5 +1,6 @@
 package com.partyhub.PartyHub.service;
 
+import com.partyhub.PartyHub.dto.EventStatisticsDTO;
 import com.partyhub.PartyHub.dto.EventSummaryDto;
 import com.partyhub.PartyHub.entities.Event;
 
@@ -14,6 +15,7 @@ public interface EventService {
     Optional<Event> getEventById(UUID id);
     public List<EventSummaryDto> getAllEventSummaries();
     List<EventSummaryDto> getUpcomingEvents();
+    Optional<EventStatisticsDTO> getEventStatisticsDTO(UUID eventId);
 
 }
 
