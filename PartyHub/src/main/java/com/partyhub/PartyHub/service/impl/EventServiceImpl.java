@@ -1,9 +1,14 @@
 package com.partyhub.PartyHub.service.impl;
 
+import com.partyhub.PartyHub.dto.EventStatisticsDTO;
 import com.partyhub.PartyHub.dto.EventSummaryDto;
 import com.partyhub.PartyHub.entities.Event;
+import com.partyhub.PartyHub.entities.Statistics;
 import com.partyhub.PartyHub.repository.EventRepository;
 import com.partyhub.PartyHub.service.EventService;
+import com.partyhub.PartyHub.service.StatisticsService;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,14 +19,12 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
+    private final StatisticsService statisticsService;
 
-    @Autowired
-    public EventServiceImpl(EventRepository eventRepository) {
-        this.eventRepository = eventRepository;
-    }
 
     @Override
     public Event addEvent(Event event) {
@@ -74,5 +77,26 @@ public class EventServiceImpl implements EventService {
                 .map(event -> new EventSummaryDto(event.getName(), event.getCity(), event.getDate()))
                 .collect(Collectors.toList());
     }
+    @Override
+    public Optional<EventStatisticsDTO> getEventStatisticsDTO(UUID eventId) {
+        Optional<Event> eventOptional = eventRepository.findById(eventId);
+        if (!eventOptional.isPresent()) {
+            return Optional.empty();
+        }
+        Event event = eventOptional.get();
 
+        Optional<Statistics> statisticsOptional = statisticsService.getStatisticsByEventId(eventId);
+
+
+        EventStatisticsDTO dto = new EventStatisticsDTO(
+                event.getName(),
+                event.getLocation(),
+                event.getDate(),
+                event.getPrice(),
+                event.getDiscount(),
+                statisticsOptional.orElse(null)
+        );
+
+        return Optional.of(dto);
+    }
 }

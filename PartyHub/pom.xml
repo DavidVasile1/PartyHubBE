@@ -144,6 +144,25 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>org.flywaydb</groupId>
+				<artifactId>flyway-maven-plugin</artifactId>
+				<version>10.9.1</version>
+				<configuration>
+					<url>jdbc:postgresql://localhost:5432/PartyHub</url>
+					<user>postgres</user>
+					<password>12345</password>
+					<schemas>
+						<schema>partyhub</schema>
+					</schemas>
+					<locations>
+						<location>classpath:db/migration</location>
+					</locations>
+					<table>schema_history</table>
+
+					<cleanDisabled>false</cleanDisabled>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
@@ -155,6 +174,7 @@
 					</excludes>
 				</configuration>
 			</plugin>
+
 		</plugins>
 	</build>
 

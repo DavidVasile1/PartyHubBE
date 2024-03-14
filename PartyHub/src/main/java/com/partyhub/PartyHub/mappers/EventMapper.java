@@ -28,25 +28,23 @@ public class EventMapper {
                 ,event.getTicketsNumber()
                 ,event.getTicketsLeft());
     }
-    public Event dtoToEvent(EventDto eventDto){
-        List<Ticket> list = new ArrayList<Ticket>();
-        return new Event(
-                eventDto.getId()
-                ,eventDto.getName()
-                ,eventDto.getMainBanner()
-                ,eventDto.getSecondaryBanner()
-                ,eventDto.getLocation()
-                ,eventDto.getCity()
-                ,eventDto.getLng()
-                ,eventDto.getLat()
-                ,eventDto.getDate()
-                ,eventDto.getDetails()
-                ,eventDto.getPrice()
-                ,eventDto.getDiscount()
-                ,eventDto.getTicketsNumber()
-                ,eventDto.getTicketsLeft()
-                ,list
-                );
+    public Event dtoToEvent(EventDto eventDto) {
+        return Event.builder()
+                .id(eventDto.getId())
+                .name(eventDto.getName())
+                .mainBanner(eventDto.getMainBanner())
+                .secondaryBanner(eventDto.getSecondaryBanner())
+                .location(eventDto.getLocation())
+                .city(eventDto.getCity())
+                .lng(eventDto.getLng())
+                .lat(eventDto.getLat())
+                .date(eventDto.getDate())
+                .details(eventDto.getDetails())
+                .price(eventDto.getPrice())
+                .discount(eventDto.getDiscount())
+                .ticketsNumber(eventDto.getTicketsNumber())
+                .ticketsLeft(eventDto.getTicketsLeft())
+                .build();
     }
 
     public EventPhotoDto eventToEventPhotoDto(Event event) {
