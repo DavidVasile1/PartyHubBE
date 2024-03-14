@@ -51,7 +51,7 @@ CREATE TABLE event (
 
 CREATE TABLE ticket (
     id UUID PRIMARY KEY,
-    validation_date DATE,
+    validation_date TIMESTAMP,
     price_paid FLOAT,
     type VARCHAR(255),
     event_id UUID,

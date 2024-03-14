@@ -38,6 +38,7 @@ public class ProfileServiceImpl implements ProfileService {
         profile.setPromoCode(user.getPromoCode());
         profile.setFullName(details.getFullName());
         profile.setAge(details.getAge());
+        profile.setDiscountForNextTicket(details.getDiscountForNextTicket());
 
         return profile;
     }
