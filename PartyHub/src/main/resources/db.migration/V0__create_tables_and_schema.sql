@@ -13,7 +13,8 @@ CREATE TABLE statistics (
                             money_earned NUMERIC,
                             generated_invites INT,
                             ticket_based_attendees INT,
-                            invitation_based_attendees INT
+                            invitation_based_attendees INT,
+                        event_id UUID
 );
 
 CREATE TABLE "user" (
@@ -54,7 +55,8 @@ CREATE TABLE event (
     price FLOAT,
     discount FLOAT,
     tickets_number INT,
-    tickets_left INT
+    tickets_left INT,
+    statistics_id UUID
 );
 
 CREATE TABLE ticket (

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.util.*;
@@ -35,7 +36,7 @@ public class AdminController {
     private final TicketService ticketService;
     private final EmailSenderService emailSenderService;
     private final DiscountService discountService;
-    private StatisticsService statisticsService;
+    private final StatisticsService statisticsService;
 
 
 
@@ -53,6 +54,16 @@ public class AdminController {
 
             event.setMainBanner(mainBanner);
             event.setSecondaryBanner(secondaryBanner);
+
+            Statistics statistics = new Statistics();
+            statistics.setTicketsSold(0);
+            statistics.setMoneyEarned(BigDecimal.ZERO);
+            statistics.setGeneratedInvites(0);
+            statistics.setTicketBasedAttendees(0);
+            statistics.setInvitationBasedAttendees(0);
+
+            event.setStatistics(statistics);
+            statistics.setEvent(event);
 
             Event savedEvent = eventService.addEvent(event);
             return new ResponseEntity<>(savedEvent, HttpStatus.CREATED);

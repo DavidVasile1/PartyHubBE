@@ -23,7 +23,8 @@ public class Statistics {
     private int generatedInvites;
     private int ticketBasedAttendees;
     private int invitationBasedAttendees;
-    @OneToOne
-    @JoinColumn(name = "event_id")
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id", referencedColumnName = "id")
     private Event event;
+
 }
