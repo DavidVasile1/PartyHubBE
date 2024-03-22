@@ -2,6 +2,7 @@ package com.partyhub.PartyHub.controller;
 
 import com.partyhub.PartyHub.dto.EventDto;
 import com.partyhub.PartyHub.dto.EventPhotoDto;
+import com.partyhub.PartyHub.dto.EventTicketInfoDTO;
 import com.partyhub.PartyHub.entities.Discount;
 import com.partyhub.PartyHub.entities.Event;
 import com.partyhub.PartyHub.entities.User;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -117,6 +119,20 @@ public class PublicController {
         } else {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
+    }
+    @GetMapping("/event-payment-details/{id}")
+    public ResponseEntity<EventTicketInfoDTO> getEventTicketInfo(@PathVariable UUID id) {
+        Event event = eventService.getEventById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+
+        EventTicketInfoDTO eventTicketInfoDTO = new EventTicketInfoDTO(
+                BigDecimal.valueOf(event.getPrice()),
+                event.getDiscount(),
+                event.getTicketsLeft(),
+                event.getTicketsNumber()
+        );
+
+        return ResponseEntity.ok(eventTicketInfoDTO);
     }
 
 }

@@ -105,13 +105,16 @@ public class AdminController {
     }
 
     @PostMapping("/events/{eventId}/invites")
-    public ResponseEntity<?> generateAndSendInvites(@PathVariable UUID eventId, @RequestBody Integer numberOfInvites) {
+    public ResponseEntity<?> generateAndSendInvites(@PathVariable UUID eventId,
+                                                    @RequestBody Integer numberOfInvites,
+                                                    Principal principal) {
+        String userEmail = principal.getName();
         Event event = eventService.getEventById(eventId)
                 .orElseThrow(() -> new RuntimeException("Event not found with ID: " + eventId));
 
         List<Ticket> invites = new ArrayList<>();
         for (int i = 0; i < numberOfInvites; i++) {
-            Ticket invite = new Ticket(UUID.randomUUID(),null, 0, "invite", event);
+            Ticket invite = new Ticket(UUID.randomUUID(),null, "invite", userEmail,event);
             invites.add(ticketService.saveTicket(invite));
         }
 

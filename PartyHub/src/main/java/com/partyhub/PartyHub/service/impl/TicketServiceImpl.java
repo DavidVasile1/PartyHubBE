@@ -37,7 +37,6 @@ public class TicketServiceImpl implements TicketService {
 
         Ticket ticket = new Ticket();
         ticket.setValidationDate(validationDate);
-        ticket.setPricePaid(pricePaid);
         ticket.setType(type);
         ticket.setEvent(event);
 
