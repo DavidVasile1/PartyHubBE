@@ -2,9 +2,7 @@ package com.partyhub.PartyHub.controller;
 
 import com.partyhub.PartyHub.dto.ChargeRequest;
 import com.partyhub.PartyHub.dto.PaymentResponse;
-import com.partyhub.PartyHub.entities.Event;
-import com.partyhub.PartyHub.entities.Statistics;
-import com.partyhub.PartyHub.entities.Ticket;
+import com.partyhub.PartyHub.entities.*;
 import com.partyhub.PartyHub.service.*;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
@@ -22,7 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import com.partyhub.PartyHub.entities.User;
+
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
@@ -70,7 +68,6 @@ public class PaymentController {
 
         this.eventService.updateTicketsLeft(chargeRequest.getTickets(), event);
 
-//        updateEventStatistics(event, chargeRequest.getTickets(), price / 100);
 
 
         PaymentResponse paymentResponse =  new PaymentResponse(charge.getId(), charge.getAmount(), charge.getCurrency(), charge.getDescription());
@@ -83,19 +80,26 @@ public class PaymentController {
             Optional<Float> discountOpt = discountService.findByCode(chargeRequest.getDiscountCode())
                     .map(discountEntity -> {
                         discountService.deleteDiscountByCode(chargeRequest.getDiscountCode());
-                        return discountEntity.getDiscountValue() * event.getPrice();
+                        return discountEntity.getDiscountValue() * event.getPrice() * chargeRequest.getTickets();
                     });
             if (discountOpt.isPresent()) {
                 discount += discountOpt.get();
+
+                User promoOwner = userService.findByPromoCode(chargeRequest.getDiscountCode())
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Promo code owner not found"));
+
+                int increaseAmount = (int) (chargeRequest.getTickets() * event.getDiscount());
+
+                UserDetails userDetails = promoOwner.getUserDetails();
+                userDetails.setDiscountForNextTicket(userDetails.getDiscountForNextTicket() + increaseAmount);
+                userService.save(promoOwner);
             }
         }
         if (!chargeRequest.getReferralEmail().isEmpty()) {
             User user = userService.findByEmail(chargeRequest.getReferralEmail())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Referral user not found"));
             int discountForNextTicket = user.getUserDetails().getDiscountForNextTicket();
-            discount += discountForNextTicket * event.getPrice();
-            user.getUserDetails().setDiscountForNextTicket((int) (event.getDiscount() * chargeRequest.getTickets()));
-            userService.save(user);
+            discount += discountForNextTicket * event.getPrice() * chargeRequest.getTickets();
         }
         return discount;
     }
