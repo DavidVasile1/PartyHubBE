@@ -7,12 +7,17 @@ import com.partyhub.PartyHub.service.*;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Charge;
-import com.stripe.model.Discount;
 import com.stripe.param.ChargeCreateParams;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.qrcode.QRCodeWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import java.io.ByteArrayOutputStream;
+import java.util.Base64;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -115,11 +120,39 @@ public class PaymentController {
     }
 
     private void sendTicketsEmail(String userEmail, List<Ticket> tickets) {
-        String emailBody = tickets.stream()
-                .map(ticket -> "Ticket Code: " + ticket.getId().toString())
-                .collect(Collectors.joining("\n"));
-        emailSenderService.sendEmail(userEmail, "Your Tickets", emailBody);
+        StringBuilder emailContent = new StringBuilder("<h1>Your Tickets</h1>");
+
+        for (Ticket ticket : tickets) {
+            // Assuming ticket.getId().toString() gives a unique identifier for the QR code
+            String qrCodeData = ticket.getId().toString();
+            String qrCodeImageBase64 = generateQRCodeImageBase64(qrCodeData, 200, 200); // Generate QR code
+
+            // Append QR Code to email content
+            emailContent.append("<div>")
+                    .append("<p>Your ticket QR code:</p>")
+                    .append("<img src=\"data:image/png;base64,")
+                    .append(qrCodeImageBase64)
+                    .append("\" /></div>");
+        }
+
+        // Ensure your emailSenderService can handle HTML content
+        emailSenderService.sendEmail(userEmail, "Your Tickets", emailContent.toString());
     }
+
+    // Utility method to generate a QR code as a base64-encoded string
+    private String generateQRCodeImageBase64(String data, int width, int height) {
+        try {
+            QRCodeWriter qrCodeWriter = new QRCodeWriter();
+            BitMatrix bitMatrix = qrCodeWriter.encode(data, BarcodeFormat.QR_CODE, width, height);
+            ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
+            MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
+            byte[] pngData = pngOutputStream.toByteArray();
+            return Base64.getEncoder().encodeToString(pngData);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate QR code", e);
+        }
+    }
+
 
     private void updateEventStatistics(Event event, int ticketsSold, float moneyEarned) {
         Statistics statistics = statisticsService.getStatisticsByEventId(event.getId())
