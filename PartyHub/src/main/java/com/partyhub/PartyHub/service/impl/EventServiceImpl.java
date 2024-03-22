@@ -86,7 +86,10 @@ public class EventServiceImpl implements EventService {
         Event event = eventOptional.get();
 
         Optional<Statistics> statisticsOptional = statisticsService.getStatisticsByEventId(eventId);
-
+        if (!statisticsOptional.isPresent()) {
+            return Optional.empty();
+        }
+        Statistics statistics = statisticsOptional.get();
 
         EventStatisticsDTO dto = new EventStatisticsDTO(
                 event.getName(),
@@ -94,7 +97,11 @@ public class EventServiceImpl implements EventService {
                 event.getDate(),
                 event.getPrice(),
                 event.getDiscount(),
-                statisticsOptional.orElse(null)
+                statistics.getTicketsSold(),
+                statistics.getMoneyEarned(),
+                statistics.getGeneratedInvites(),
+                statistics.getTicketBasedAttendees(),
+                statistics.getInvitationBasedAttendees()
         );
 
         return Optional.of(dto);

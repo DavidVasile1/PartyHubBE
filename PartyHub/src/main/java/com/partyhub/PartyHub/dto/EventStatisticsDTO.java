@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
@@ -16,5 +17,10 @@ public class EventStatisticsDTO {
     private LocalDate date;
     private float price;
     private float discount;
-    private Statistics statistics;
+    private int ticketsSold;
+    private BigDecimal moneyEarned;
+    private int generatedInvites;
+    private int ticketBasedAttendees;
+    private int invitationBasedAttendees;
+
 }
