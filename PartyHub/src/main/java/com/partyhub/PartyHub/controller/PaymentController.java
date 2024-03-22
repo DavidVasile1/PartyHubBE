@@ -42,14 +42,16 @@ public class PaymentController {
     private String apiKey;
 
 
-
-
     @PostMapping("/charge")
-    public PaymentResponse chargeCard(@RequestBody ChargeRequest chargeRequest) throws StripeException {
+    public ApiResponse chargeCard(@RequestBody ChargeRequest chargeRequest) throws StripeException {
+
         Stripe.apiKey = apiKey;
 
         Event event = eventService.getEventById(chargeRequest.getEventId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+        if(event.getTicketsLeft() <= 0){
+            return new ApiResponse(false, "Tickets sold out!");
+        }
 
         float discount = calculateDiscount(chargeRequest, event);
         float price = (chargeRequest.getTickets() * event.getPrice() - discount) * 100;
@@ -65,9 +67,14 @@ public class PaymentController {
 
         List<Ticket> tickets = generateTickets(chargeRequest, event);
         sendTicketsEmail(chargeRequest.getUserEmail(), tickets);
-        updateEventStatistics(event, chargeRequest.getTickets(), price / 100);
 
-        return new PaymentResponse(charge.getId(), charge.getAmount(), charge.getCurrency(), charge.getDescription());
+        this.eventService.updateTicketsLeft(chargeRequest.getTickets(), event);
+
+//        updateEventStatistics(event, chargeRequest.getTickets(), price / 100);
+
+
+        PaymentResponse paymentResponse =  new PaymentResponse(charge.getId(), charge.getAmount(), charge.getCurrency(), charge.getDescription());
+        return new ApiResponse(true,paymentResponse.toString() );
     }
 
     private float calculateDiscount(ChargeRequest chargeRequest, Event event) {

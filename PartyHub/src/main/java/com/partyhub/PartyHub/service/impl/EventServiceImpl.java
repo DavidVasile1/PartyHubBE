@@ -99,4 +99,10 @@ public class EventServiceImpl implements EventService {
 
         return Optional.of(dto);
     }
+
+    @Override
+    public void updateTicketsLeft(int tickets, Event event) {
+        event.setTicketsLeft(event.getTicketsLeft() - tickets);
+        this.addEvent(event);
+    }
 }
