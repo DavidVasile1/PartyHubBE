@@ -102,8 +102,9 @@ public class PaymentController {
 
     private List<Ticket> generateTickets(ChargeRequest chargeRequest, Event event) {
         List<Ticket> tickets = new ArrayList<>();
+        String userEmail = chargeRequest.getUserEmail();
         for (int i = 0; i < chargeRequest.getTickets(); i++) {
-            Ticket ticket = new Ticket(UUID.randomUUID(), null, 0, "ticket", event);
+            Ticket ticket = new Ticket(UUID.randomUUID(), null, "ticket",userEmail,event);
             tickets.add(ticketService.saveTicket(ticket));
         }
         return tickets;
