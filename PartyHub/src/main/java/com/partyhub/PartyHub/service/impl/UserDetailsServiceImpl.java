@@ -24,7 +24,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         UserDetails userDetails = new UserDetails();
         userDetails.setAge(age);
         userDetails.setFullName(fullName);
-        userDetails.setDiscountForNextTicket(0);
         save(userDetails);
         return userDetails;
     }

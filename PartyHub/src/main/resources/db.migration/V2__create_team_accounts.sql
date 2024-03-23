@@ -1,7 +1,7 @@
-INSERT INTO user_details (id, full_name, age, discount_for_next_ticket) VALUES
-('550e8400-e29b-41d4-a716-446655440000', 'Mischie Andrei', 21, 0),
-('550e8400-e29b-41d4-a716-446655440001', 'Vasile David', 21, 0),
-('550e8400-e29b-41d4-a716-446655440002', 'Nichifor Andra', 21, 0);
+INSERT INTO user_details (id, full_name, age) VALUES
+('550e8400-e29b-41d4-a716-446655440000', 'Mischie Andrei', 21),
+('550e8400-e29b-41d4-a716-446655440001', 'Vasile David', 21),
+('550e8400-e29b-41d4-a716-446655440002', 'Nichifor Andra', 21);
 
 INSERT INTO "user" (id, email, verified, password, promo_code, user_details_id) VALUES
 (

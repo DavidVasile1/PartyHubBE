@@ -23,7 +23,6 @@ public class EmailSenderServiceImpl implements EmailSenderService {
 
             helper.setTo(to);
             helper.setSubject(subject);
-            // true indicates HTML
             helper.setText(body, true);
 
             mailSender.send(message);

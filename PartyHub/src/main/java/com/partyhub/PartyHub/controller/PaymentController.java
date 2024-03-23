@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.web.server.ResponseStatusException;
 
@@ -40,6 +40,8 @@ public class PaymentController {
     private final DiscountService discountService;
     private final UserService userService;
     private final StatisticsService statisticsService;
+    private final DiscountForNextTicketService discountForNextTicketService;
+
 
     @Value("${stripe.keys.secret}")
     private String apiKey;
@@ -80,34 +82,31 @@ public class PaymentController {
     }
 
     private float calculateDiscount(ChargeRequest chargeRequest, Event event) {
-        float discount = 0;
+        AtomicReference<Float> discount = new AtomicReference<>(0f);
+
         if (!chargeRequest.getDiscountCode().isEmpty()) {
-            Optional<Float> discountOpt = discountService.findByCode(chargeRequest.getDiscountCode())
+            discountService.findByCode(chargeRequest.getDiscountCode())
                     .map(discountEntity -> {
                         discountService.deleteDiscountByCode(chargeRequest.getDiscountCode());
                         return discountEntity.getDiscountValue() * event.getPrice() * chargeRequest.getTickets();
-                    });
-            if (discountOpt.isPresent()) {
-                discount += discountOpt.get();
-
-                User promoOwner = userService.findByPromoCode(chargeRequest.getDiscountCode())
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Promo code owner not found"));
-
-                int increaseAmount = (int) (chargeRequest.getTickets() * event.getDiscount());
-
-                UserDetails userDetails = promoOwner.getUserDetails();
-                userDetails.setDiscountForNextTicket(userDetails.getDiscountForNextTicket() + increaseAmount);
-                userService.save(promoOwner);
-            }
+                    })
+                    .ifPresent(discountValue -> discount.updateAndGet(v -> v + discountValue));
         }
+
         if (!chargeRequest.getReferralEmail().isEmpty()) {
-            User user = userService.findByEmail(chargeRequest.getReferralEmail())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Referral user not found"));
-            int discountForNextTicket = user.getUserDetails().getDiscountForNextTicket();
-            discount += discountForNextTicket * event.getPrice() * chargeRequest.getTickets();
+            userService.findByEmail(chargeRequest.getReferralEmail())
+                    .map(User::getUserDetails) // Assuming a method or mapping exists
+                    .flatMap(userDetails -> discountForNextTicketService.findDiscountForUserAndEvent(userDetails, event))
+                    .ifPresent(discountForNextTicket -> {
+                        float updatedDiscount = discount.get() + discountForNextTicket.getValue() * chargeRequest.getTickets();
+                        discount.set(updatedDiscount);
+                        discountForNextTicketService.useDiscountForNextTicket(discountForNextTicket);
+                    });
         }
-        return discount;
+
+        return discount.get();
     }
+
 
     private List<Ticket> generateTickets(ChargeRequest chargeRequest, Event event) {
         List<Ticket> tickets = new ArrayList<>();
@@ -123,23 +122,19 @@ public class PaymentController {
         StringBuilder emailContent = new StringBuilder("<h1>Your Tickets</h1>");
 
         for (Ticket ticket : tickets) {
-            // Assuming ticket.getId().toString() gives a unique identifier for the QR code
             String qrCodeData = ticket.getId().toString();
             String qrCodeImageBase64 = generateQRCodeImageBase64(qrCodeData, 200, 200); // Generate QR code
 
-            // Append QR Code to email content
-            emailContent.append("<div>")
+            emailContent.append("<div style='margin-bottom: 20px;'>") // Added margin for better spacing
                     .append("<p>Your ticket QR code:</p>")
                     .append("<img src=\"data:image/png;base64,")
                     .append(qrCodeImageBase64)
-                    .append("\" /></div>");
+                    .append("\" alt='Ticket QR Code' style='border: 1px solid #ddd; border-radius: 4px; padding: 5px; width: 150px;' /></div>");
         }
 
-        // Ensure your emailSenderService can handle HTML content
         emailSenderService.sendEmail(userEmail, "Your Tickets", emailContent.toString());
     }
 
-    // Utility method to generate a QR code as a base64-encoded string
     private String generateQRCodeImageBase64(String data, int width, int height) {
         try {
             QRCodeWriter qrCodeWriter = new QRCodeWriter();

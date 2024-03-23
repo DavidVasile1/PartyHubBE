@@ -2,10 +2,15 @@
 CREATE EXTENSION "uuid-ossp";
 
 CREATE TABLE user_details (
-    id UUID PRIMARY KEY,
-    full_name VARCHAR(255) NOT NULL,
-    age INT NOT NULL,
-    discount_for_next_ticket INT
+                              id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                              full_name VARCHAR(255) NOT NULL,
+                              age INT NOT NULL
+);
+CREATE TABLE discount_for_next_ticket (
+                              id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                          value INT,
+    user_details_id UUID,
+    event_id UUID
 );
 CREATE TABLE statistics (
     id UUID PRIMARY KEY,

@@ -80,21 +80,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByPromoCode(promoCode);
     }
 
-    public void increaseDiscountForNextTicket(String email, UUID eventId) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
 
-        Event event = eventService.getEventById(eventId)
-                .orElseThrow(() -> new IllegalArgumentException("Event not found with ID: " + eventId));
 
-        UserDetails userDetails = user.getUserDetails();
-        if (userDetails != null) {
-            int discountAsInt = (int) event.getDiscount();
-            userDetails.setDiscountForNextTicket(discountAsInt);
-            userRepository.save(user);
-        } else {
-            throw new IllegalStateException("UserDetails not found for user with email: " + email);
-        }
-    }
 }
 

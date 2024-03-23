@@ -40,4 +40,6 @@ public class Event {
     private Statistics statistics;
     @OneToMany(mappedBy = "event")
     private List<Ticket> tickets;
+    @OneToMany(mappedBy = "event")
+    private List<DiscountForNextTicket> discountsForNextTicket;
 }
