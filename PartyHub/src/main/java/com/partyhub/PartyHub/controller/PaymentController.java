@@ -3,6 +3,9 @@ package com.partyhub.PartyHub.controller;
 import com.partyhub.PartyHub.dto.ChargeRequest;
 import com.partyhub.PartyHub.dto.PaymentResponse;
 import com.partyhub.PartyHub.entities.*;
+import com.partyhub.PartyHub.exceptions.DiscountForNextTicketNotFoundException;
+import com.partyhub.PartyHub.exceptions.DiscountNotFoundException;
+import com.partyhub.PartyHub.exceptions.UserNotFoundException;
 import com.partyhub.PartyHub.service.*;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
@@ -26,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.Flow;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.web.server.ResponseStatusException;
@@ -65,9 +69,9 @@ public class PaymentController {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        Optional<User> user =  userService.findByEmail(email);
+        User user =  userService.findByEmail(email);
 
-        discountForNextTicketService.addOrUpdateDiscountForUser(user.get(),event, (int) (chargeRequest.getTickets()*event.getPrice()));
+        discountForNextTicketService.addOrUpdateDiscountForUser(user,event, (int) (chargeRequest.getTickets()*event.getPrice()));
 
         ChargeCreateParams params = ChargeCreateParams.builder()
                 .setAmount((long) price)
@@ -88,38 +92,51 @@ public class PaymentController {
     }
 
     private float calculateDiscount(ChargeRequest chargeRequest, Event event) {
-        AtomicReference<Float> discount = new AtomicReference<>(0f);
+        float discount = 0f;
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        Optional<User> user =  userService.findByEmail(email);
-        int discountForNextTicketValue =  discountForNextTicketService.findDiscountForUserAndEvent(user.get().getUserDetails(), event).get().getValue();
-        if(!email.isEmpty()){
-            discount.updateAndGet(v -> v + discountForNextTicketValue);
+        User user = userService.findByEmail(email); // Presupunem că acum findByEmail aruncă o excepție dacă nu găsește utilizatorul
+
+        // Aplică discount pentru biletul următor, dacă există
+        try {
+            DiscountForNextTicket discountForNextTicket = discountForNextTicketService.findDiscountForUserAndEvent(user.getUserDetails(), event);
+            discount += discountForNextTicket.getValue() * chargeRequest.getTickets();
+            discountForNextTicketService.useDiscountForNextTicket(discountForNextTicket);
+        } catch (DiscountForNextTicketNotFoundException e) {
+            // Opțional: Tratează cazul în care discount-ul pentru biletul următor nu este găsit
         }
 
+        // Aplică discount folosind codul de discount, dacă este furnizat
         if (!chargeRequest.getDiscountCode().isEmpty()) {
-            discountService.findByCode(chargeRequest.getDiscountCode())
-                    .map(discountEntity -> {
-                        discountService.deleteDiscountByCode(chargeRequest.getDiscountCode());
-                        return discountEntity.getDiscountValue() * event.getPrice() * chargeRequest.getTickets();
-                    })
-                    .ifPresent(discountValue -> discount.updateAndGet(v -> v + discountValue));
+            try {
+                Discount discountEntity = discountService.findByCode(chargeRequest.getDiscountCode());
+                discount += discountEntity.getDiscountValue() * event.getPrice() * chargeRequest.getTickets();
+                discountService.deleteDiscountByCode(chargeRequest.getDiscountCode());
+            } catch (DiscountNotFoundException e) {
+                // Opțional: Tratează cazul în care codul de discount nu este găsit
+            }
         }
 
+        // Aplică discount pentru referral, dacă este furnizat
         if (!chargeRequest.getReferralEmail().isEmpty()) {
-            userService.findByEmail(chargeRequest.getReferralEmail())
-                    .map(User::getUserDetails)
-                    .flatMap(userDetails -> discountForNextTicketService.findDiscountForUserAndEvent(userDetails, event))
-                    .ifPresent(discountForNextTicket -> {
-                        float updatedDiscount = discount.get() + discountForNextTicket.getValue() * chargeRequest.getTickets();
-                        discount.set(updatedDiscount);
-                        discountForNextTicketService.useDiscountForNextTicket(discountForNextTicket);
-                    });
+            try {
+                User referrerUser = userService.findByEmail(chargeRequest.getReferralEmail());
+                UserDetails referrerUserDetails = referrerUser.getUserDetails();
+                DiscountForNextTicket discountForNextTicketReferral = discountForNextTicketService.findDiscountForUserAndEvent(referrerUserDetails, event);
+
+                discount += discountForNextTicketReferral.getValue() * chargeRequest.getTickets();
+                discountForNextTicketService.useDiscountForNextTicket(discountForNextTicketReferral);
+            } catch (DiscountForNextTicketNotFoundException e) {
+                // Opțional: Tratează cazul în care discount-ul de referral nu este găsit
+            } catch (UserNotFoundException e) {
+                // Opțional: Tratează cazul în care utilizatorul de referral nu este găsit
+            }
         }
 
-        return discount.get();
+        return discount;
     }
+
 
 
     private List<Ticket> generateTickets(ChargeRequest chargeRequest, Event event) {
@@ -164,12 +181,7 @@ public class PaymentController {
 
 
     private void updateEventStatistics(Event event, int ticketsSold, float moneyEarned) {
-        Statistics statistics = statisticsService.getStatisticsByEventId(event.getId())
-                .orElseGet(() -> {
-                    Statistics newStatistics = new Statistics();
-                    newStatistics.setEvent(event);
-                    return newStatistics;
-                });
+        Statistics statistics = statisticsService.getStatisticsByEventId(event.getId());
 
         statistics.setTicketsSold(statistics.getTicketsSold() + ticketsSold);
         statistics.setMoneyEarned(statistics.getMoneyEarned().add(BigDecimal.valueOf(moneyEarned)));

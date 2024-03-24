@@ -1,6 +1,7 @@
 package com.partyhub.PartyHub.service.impl;
 
 import com.partyhub.PartyHub.entities.UserDetails;
+import com.partyhub.PartyHub.exceptions.UserDetailsNotFoundException;
 import com.partyhub.PartyHub.repository.UserDetailsRepository;
 import com.partyhub.PartyHub.service.UserDetailsService;
 import lombok.RequiredArgsConstructor;
@@ -29,10 +30,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     @Override
-    public Optional<UserDetails> findById(UUID id) {
-        return userDetailsRepository.findById(id);
+    public UserDetails findById(UUID id) {
+        return userDetailsRepository.findById(id)
+                .orElseThrow(() -> new UserDetailsNotFoundException("UserDetails not found with ID: " + id));
     }
-
     @Override
     public void delete(UserDetails userDetails) {
         userDetailsRepository.delete(userDetails);

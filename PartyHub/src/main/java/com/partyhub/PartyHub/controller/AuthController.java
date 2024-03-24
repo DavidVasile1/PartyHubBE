@@ -7,6 +7,7 @@ import com.partyhub.PartyHub.entities.Role;
 import com.partyhub.PartyHub.entities.User;
 import com.partyhub.PartyHub.entities.UserDetails;
 import com.partyhub.PartyHub.exceptions.EmailAlreadyUsedException;
+import com.partyhub.PartyHub.exceptions.RoleNotFoundException;
 import com.partyhub.PartyHub.exceptions.UserAlreadyVerifiedException;
 import com.partyhub.PartyHub.exceptions.UserNotFoundException;
 import com.partyhub.PartyHub.security.JwtGenerator;
@@ -52,7 +53,7 @@ public class AuthController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = jwtGenerator.generateToken(authentication);
 
-        User user = userService.findByEmail(loginDto.getEmail()).orElse(null);
+        User user = userService.findByEmail(loginDto.getEmail());
         if(user!=null){
             if(!user.isVerified()){
                 AuthResponseDto responseDto = new AuthResponseDto(null);
@@ -65,10 +66,10 @@ public class AuthController {
 
     @GetMapping("/verify/{token}")
     public ResponseEntity<ApiResponse> verify(@PathVariable UUID token) {
-        Optional<User> optionalUser = this.userService.findByVerificationToken(token);
+        User user = this.userService.findByVerificationToken(token);
         try {
-            if (optionalUser.isPresent()) {
-                User user = optionalUser.get();
+
+
                 if (!user.isVerified()) {
                     user.setVerified(true);
                     this.userService.save(user);
@@ -76,9 +77,7 @@ public class AuthController {
                 } else {
                     throw new UserAlreadyVerifiedException("User already verified!");
                 }
-            } else {
-                throw new UserNotFoundException("User not found!");
-            }
+
         }catch ( UserAlreadyVerifiedException e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse(false, "User already verified!"));
         }catch ( UserNotFoundException e){
@@ -91,7 +90,7 @@ public class AuthController {
         try{
         String clientUrl = "http://localhost:4200";
 
-        User user = userService.findByEmail(email).orElseThrow(()->new UserNotFoundException("User not found!"));
+        User user = userService.findByEmail(email);
         user.setVerificationToken(UUID.randomUUID());
         this.userService.save(user);
         this.emailSenderService.sendEmail(email, "PartyHub", clientUrl + "/reset-password/" + user.getVerificationToken());
@@ -105,8 +104,7 @@ public class AuthController {
     @PostMapping("reset-password/{token}")
     public ResponseEntity<ApiResponse> resetPassword(@PathVariable UUID token,@RequestBody String newPassword) {
         try {
-            Optional<User> optionalUser = this.userService.findByVerificationToken(token);
-            User user = optionalUser.orElseThrow(()-> new UserNotFoundException("user not found"));
+            User user = this.userService.findByVerificationToken(token);
             profileService.resetPassword(user.getEmail(), newPassword);
             return ResponseEntity.ok(new ApiResponse(true, "Password reset successfully!"));
         } catch (UserNotFoundException e) {
@@ -130,7 +128,7 @@ public class AuthController {
             user.setEmail(registerDto.getEmail());
             user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
 
-            Role role = roleService.findByName("USER").orElseThrow(() -> new RuntimeException("Role not found"));
+            Role role = roleService.findByName("USER");
 
             user.setRoles(Collections.singletonList(role));
             user.setVerificationToken(UUID.randomUUID());
@@ -143,10 +141,12 @@ public class AuthController {
             this.emailSenderService.sendEmail(registerDto.getEmail(), "PartyHub", clientUrl + "/verify/" + user.getVerificationToken());
 
             return new ResponseEntity<>(new ApiResponse(true, "User registration successful"), HttpStatus.OK);
-        }catch (EmailAlreadyUsedException e){
+        }catch (EmailAlreadyUsedException e) {
             return new ResponseEntity<>(new ApiResponse(false, "Email already used!"), HttpStatus.BAD_REQUEST);
-        }catch (RuntimeException e){
+        }catch (RoleNotFoundException e){
             return new ResponseEntity<>(new ApiResponse(false, "Role not found!"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }catch (RuntimeException e){
+            return new ResponseEntity<>(new ApiResponse(false, "Server error!"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

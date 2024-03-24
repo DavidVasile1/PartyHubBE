@@ -54,10 +54,9 @@ public class EventServiceImpl implements EventService {
         }
     }
     @Override
-    public Optional<Event> getNearestEvent() {
-        LocalDate today = LocalDate.now();
-        Optional<Event> event = eventRepository.findTopByDateAfterOrderByDateAsc(today);
-        return event;
+    public Event getNearestEvent() {
+        return eventRepository.findTopByDateAfterOrderByDateAsc(LocalDate.now())
+                .orElseThrow(() -> new EventNotFoundException("No upcoming events found"));
     }
 
     @Override
@@ -86,11 +85,7 @@ public class EventServiceImpl implements EventService {
         }
         Event event = eventOptional.get();
 
-        Optional<Statistics> statisticsOptional = statisticsService.getStatisticsByEventId(eventId);
-        if (!statisticsOptional.isPresent()) {
-            return Optional.empty();
-        }
-        Statistics statistics = statisticsOptional.get();
+        Statistics statistics = statisticsService.getStatisticsByEventId(eventId);
 
         EventStatisticsDTO dto = new EventStatisticsDTO(
                 event.getName(),

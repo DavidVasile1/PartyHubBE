@@ -11,5 +11,5 @@ public interface TicketService {
 
     Ticket saveTicket(Ticket ticket);
     Ticket generateAndSaveTicketForEvent(float pricePaid, String type, UUID eventId, LocalDateTime chosenDate);
-    Optional<Ticket> findById(UUID ticketId);
+    Ticket findById(UUID ticketId);
 }

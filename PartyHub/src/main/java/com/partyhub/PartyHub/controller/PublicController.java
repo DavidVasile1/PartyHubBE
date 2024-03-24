@@ -4,10 +4,12 @@ import com.partyhub.PartyHub.dto.EventDto;
 import com.partyhub.PartyHub.dto.EventPhotoDto;
 import com.partyhub.PartyHub.dto.EventTicketInfoDTO;
 import com.partyhub.PartyHub.entities.Discount;
+import com.partyhub.PartyHub.entities.DiscountForNextTicket;
 import com.partyhub.PartyHub.entities.Event;
 import com.partyhub.PartyHub.entities.User;
 import com.partyhub.PartyHub.exceptions.EventNotFoundException;
 import com.partyhub.PartyHub.mappers.EventMapper;
+import com.partyhub.PartyHub.service.DiscountForNextTicketService;
 import com.partyhub.PartyHub.service.DiscountService;
 import com.partyhub.PartyHub.service.EventService;
 import com.partyhub.PartyHub.service.UserService;
@@ -15,6 +17,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -33,6 +37,7 @@ public class PublicController {
     private final EventMapper eventMapper;
     private final UserService userService;
     private final DiscountService discountService;
+    private final DiscountForNextTicketService discountForNextTicketService;
 
     @Transactional
     @GetMapping("/event/{id}")
@@ -52,41 +57,41 @@ public class PublicController {
     @GetMapping("/event")
     public ResponseEntity<EventPhotoDto> getNearestEventPhoto() {
         try {
-            Event nearestEvent = eventService.getNearestEvent().orElseThrow(()-> new EventNotFoundException("Event not found!"));
+            Event nearestEvent = eventService.getNearestEvent();
             EventPhotoDto eventPhotoDto = eventMapper.eventToEventPhotoDto(nearestEvent);
             if (eventPhotoDto != null) {
                 return new ResponseEntity<>(eventPhotoDto, HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
-        } catch (Exception e) {
+        } catch (EventNotFoundException e) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @PostMapping("/apply-promocode-or-discount")
     public ResponseEntity<ApiResponse> checkPromoCodeOrDiscount(@RequestParam String code) {
-        if(code.length() == 9){
-            if (isValidPromoCode(code)) {
-                Optional<User> userOptional = userService.findByPromoCode(code);
-                if (userOptional.isPresent()) {
-                    User user = userOptional.get();
-                    String email = user.getEmail();
-                    return new ResponseEntity<>(new ApiResponse(true, email), HttpStatus.OK);
-                } else {
-                    return new ResponseEntity<>(new ApiResponse(false, "Not a valid promocode"), HttpStatus.NOT_FOUND);
+        try {
+            if (code.length() == 9) {
+                if (isValidPromoCode(code)) {
+                    User user = userService.findByPromoCode(code);
+
+                        String email = user.getEmail();
+                        return new ResponseEntity<>(new ApiResponse(true, email), HttpStatus.OK);
+                }
+            } else if (code.length() == 10) {
+                try {
+                    Discount discount = discountService.findByCode(code);
+                    return new ResponseEntity<>(new ApiResponse(true, String.valueOf(discount.getDiscountValue())), HttpStatus.OK);
+                } catch (Exception e) {
+                    return new ResponseEntity<>(new ApiResponse(false, "Discount code not found"), HttpStatus.NOT_FOUND);
                 }
             }
-        }else{
-            if (code.length() == 10){
-            Optional<Discount> discountOptional = discountService.findByCode(code);
-                if (discountOptional.isPresent()) {
-                    Discount discount = discountOptional.get();
-                    return new ResponseEntity<>( new ApiResponse(true, String.valueOf(discount.getDiscountValue())), HttpStatus.OK);
-                } else {
-                    return new ResponseEntity<>(new ApiResponse(false, "Not a valid discount"), HttpStatus.NOT_FOUND);
-                }
-            }
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(false, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return new ResponseEntity<>(new ApiResponse(false, "Not a valid form"), HttpStatus.NOT_FOUND);
     }
@@ -118,13 +123,19 @@ public class PublicController {
     @GetMapping("/event-payment-details/{id}")
     public ResponseEntity<EventTicketInfoDTO> getEventTicketInfo(@PathVariable UUID id) {
         try{
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            User user = userService.findByEmail(email);
             Event event = eventService.getEventById(id);
-            EventTicketInfoDTO eventTicketInfoDTO = new EventTicketInfoDTO(
-                BigDecimal.valueOf(event.getPrice()),
-                event.getDiscount(),
-                event.getTicketsLeft(),
-                event.getTicketsNumber()
 
+            int discountForNextTicket = discountForNextTicketService.findDiscountForUserAndEvent(user.getUserDetails(),event).getValue();
+
+            EventTicketInfoDTO eventTicketInfoDTO = new EventTicketInfoDTO(
+                    BigDecimal.valueOf(event.getPrice()),
+                    event.getDiscount(),
+                    event.getTicketsLeft(),
+                    event.getTicketsNumber(),
+                    discountForNextTicket
             );
             return ResponseEntity.ok(eventTicketInfoDTO);
         }catch (EventNotFoundException e){

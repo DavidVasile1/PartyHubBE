@@ -2,6 +2,7 @@ package com.partyhub.PartyHub.service.impl;
 
 import com.partyhub.PartyHub.dto.EventStatisticsDTO;
 import com.partyhub.PartyHub.entities.Statistics;
+import com.partyhub.PartyHub.exceptions.StatisticsNotFoundException;
 import com.partyhub.PartyHub.repository.StatisticsRepository;
 import com.partyhub.PartyHub.service.StatisticsService;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +18,9 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     private final StatisticsRepository statisticsRepository;
     @Override
-    public Optional<Statistics> getStatisticsByEventId(UUID eventId) {
-        return statisticsRepository.findByEventId(eventId);
+    public Statistics getStatisticsByEventId(UUID eventId) {
+        return statisticsRepository.findByEventId(eventId)
+                .orElseThrow(() -> new StatisticsNotFoundException("Statistics not found for event ID: " + eventId));
     }
 
     @Override

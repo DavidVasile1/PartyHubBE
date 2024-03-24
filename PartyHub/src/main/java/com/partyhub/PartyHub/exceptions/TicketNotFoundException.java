@@ -1,4 +1,4 @@
-package com.partyhub.PartyHub.util;
+package com.partyhub.PartyHub.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

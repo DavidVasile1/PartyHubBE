@@ -6,7 +6,7 @@ import com.partyhub.PartyHub.entities.Statistics;
 import com.partyhub.PartyHub.entities.Ticket;
 import com.partyhub.PartyHub.service.StatisticsService;
 import com.partyhub.PartyHub.service.TicketService;
-import com.partyhub.PartyHub.util.TicketNotFoundException;
+import com.partyhub.PartyHub.exceptions.TicketNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,8 +27,7 @@ public class ScannerController {
     @PostMapping("/validate/{ticketId}")
     public ResponseEntity<ApiResponse> validateTicket(@PathVariable UUID ticketId) {
         try {
-            Ticket ticket = ticketService.findById(ticketId)
-                    .orElseThrow(() -> new TicketNotFoundException("Ticket not found with ID: " + ticketId));
+            Ticket ticket = ticketService.findById(ticketId);
 
             if (ticket.getValidationDate() == null) {
                 ticket.setValidationDate(LocalDateTime.now());

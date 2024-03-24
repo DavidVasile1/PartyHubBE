@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface DiscountForNextTicketService {
     void addOrUpdateDiscountForUser(User user, Event event, int increaseAmount);
-    public Optional<DiscountForNextTicket> findDiscountForUserAndEvent(UserDetails userDetails, Event event);
+    DiscountForNextTicket findDiscountForUserAndEvent(UserDetails userDetails, Event event);
     void useDiscountForNextTicket(DiscountForNextTicket discountForNextTicket);
 
 }

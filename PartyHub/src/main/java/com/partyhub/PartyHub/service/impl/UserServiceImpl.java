@@ -3,6 +3,7 @@ package com.partyhub.PartyHub.service.impl;
 import com.partyhub.PartyHub.entities.Event;
 import com.partyhub.PartyHub.entities.User;
 import com.partyhub.PartyHub.entities.UserDetails;
+import com.partyhub.PartyHub.exceptions.UserNotFoundException;
 import com.partyhub.PartyHub.repository.UserRepository;
 import com.partyhub.PartyHub.service.EventService;
 import com.partyhub.PartyHub.service.UserService;
@@ -21,13 +22,14 @@ public class UserServiceImpl implements UserService {
     private final EventService eventService;
 
     @Override
-    public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
     }
-  
     @Override
-    public Optional<User> findByVerificationToken(UUID verificationToken) {
-        return userRepository.findByVerificationToken(verificationToken);
+    public User findByVerificationToken(UUID verificationToken) {
+        return userRepository.findByVerificationToken(verificationToken)
+                .orElseThrow(() -> new UserNotFoundException("User not found with verification token: " + verificationToken));
     }
   
     @Override
@@ -76,10 +78,10 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByPromoCode(promoCode).isPresent();
     }
     @Override
-    public Optional<User> findByPromoCode(String promoCode) {
-        return userRepository.findByPromoCode(promoCode);
+    public User findByPromoCode(String promoCode) {
+        return userRepository.findByPromoCode(promoCode)
+                .orElseThrow(() -> new UserNotFoundException("User not found with promo code: " + promoCode));
     }
-
 
 
 }

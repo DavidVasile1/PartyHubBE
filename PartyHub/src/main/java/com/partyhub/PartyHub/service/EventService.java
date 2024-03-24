@@ -11,9 +11,9 @@ import java.util.UUID;
 public interface EventService {
     Event addEvent(Event event);
     Event editEvent(UUID id, Event eventDetails);
-    Optional<Event> getNearestEvent();
+     Event getNearestEvent();
     Event getEventById(UUID id);
-    public List<EventSummaryDto> getAllEventSummaries();
+     List<EventSummaryDto> getAllEventSummaries();
     List<EventSummaryDto> getUpcomingEvents();
     Optional<EventStatisticsDTO> getEventStatisticsDTO(UUID eventId);
     void updateTicketsLeft(int tickets, Event event);

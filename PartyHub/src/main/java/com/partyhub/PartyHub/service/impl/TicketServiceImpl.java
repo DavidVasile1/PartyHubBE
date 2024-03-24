@@ -4,15 +4,14 @@ package com.partyhub.PartyHub.service.impl;
 import com.partyhub.PartyHub.entities.Event;
 import com.partyhub.PartyHub.entities.Ticket;
 import com.partyhub.PartyHub.exceptions.EventNotFoundException;
+import com.partyhub.PartyHub.exceptions.TicketNotFoundException;
 import com.partyhub.PartyHub.repository.EventRepository;
 import com.partyhub.PartyHub.repository.TicketRepository;
 import com.partyhub.PartyHub.service.TicketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -44,9 +43,9 @@ public class TicketServiceImpl implements TicketService {
         return ticketRepository.save(ticket);
     }
     @Override
-    public Optional<Ticket> findById(UUID ticketId) {
-        return ticketRepository.findById(ticketId);
-
+    public Ticket findById(UUID ticketId) {
+        return ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException("Ticket not found with ID: " + ticketId));
     }
 
 }

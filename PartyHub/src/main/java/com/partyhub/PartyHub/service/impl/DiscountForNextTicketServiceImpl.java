@@ -4,6 +4,7 @@ import com.partyhub.PartyHub.entities.DiscountForNextTicket;
 import com.partyhub.PartyHub.entities.Event;
 import com.partyhub.PartyHub.entities.User;
 import com.partyhub.PartyHub.entities.UserDetails;
+import com.partyhub.PartyHub.exceptions.DiscountForNextTicketNotFoundException;
 import com.partyhub.PartyHub.repository.DiscountForNextTicketRepository;
 import com.partyhub.PartyHub.service.DiscountForNextTicketService;
 import lombok.RequiredArgsConstructor;
@@ -36,8 +37,9 @@ public class DiscountForNextTicketServiceImpl implements DiscountForNextTicketSe
     }
 
     @Override
-    public Optional<DiscountForNextTicket> findDiscountForUserAndEvent(UserDetails userDetails, Event event) {
-        return discountForNextTicketRepository.findByUserDetailsAndEvent(userDetails, event);
+    public DiscountForNextTicket findDiscountForUserAndEvent(UserDetails userDetails, Event event) {
+        return discountForNextTicketRepository.findByUserDetailsAndEvent(userDetails, event)
+                .orElseThrow(() -> new DiscountForNextTicketNotFoundException("DiscountForNextTicket not found for user and event"));
     }
 
     @Override

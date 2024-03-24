@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 import java.util.UUID;
 public interface StatisticsService {
-    Optional<Statistics> getStatisticsByEventId(UUID eventId);
+     Statistics getStatisticsByEventId(UUID eventId);
     Statistics save(Statistics statistics);
 
 }

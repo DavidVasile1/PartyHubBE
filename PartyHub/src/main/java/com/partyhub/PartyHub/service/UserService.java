@@ -6,15 +6,16 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UserService {
-    Optional<User> findByEmail(String email);
-    Optional<User> findByVerificationToken(UUID verificationToken);
+    User findByEmail(String email);
+    User findByVerificationToken(UUID verificationToken);
     Boolean existsByEmail(String email);
     void save(User user);
     void delete(User user);
-    public void generateAndSetPromoCodeForUser(UUID userId);
-    public boolean isPromoCodeInUse(String promoCode);
-    public boolean doesPromoCodeExist(String promoCode);
-    Optional<User> findByPromoCode(String promoCode);
+     void generateAndSetPromoCodeForUser(UUID userId);
+     boolean isPromoCodeInUse(String promoCode);
+     boolean doesPromoCodeExist(String promoCode);
+     User findByPromoCode(String promoCode);
+
 
 
 

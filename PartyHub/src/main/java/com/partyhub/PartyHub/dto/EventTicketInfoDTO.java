@@ -14,4 +14,5 @@ public class EventTicketInfoDTO {
     private float discount;
     private int ticketsLeft;
     private int tickets;
+    private int discountForNextTicket;
 }

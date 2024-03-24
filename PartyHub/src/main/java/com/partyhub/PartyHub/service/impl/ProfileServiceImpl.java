@@ -24,12 +24,8 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     public ProfileDto getProfile(String email) {
-        Optional<User> userOptional = userService.findByEmail(email);
-        if (userOptional.isEmpty()) {
-            throw new UserNotFoundException("User not found by email.");
-        }
+        User user = userService.findByEmail(email);
 
-        User user = userOptional.get();
         UserDetails details = user.getUserDetails();
 
         ProfileDto profile = new ProfileDto();
@@ -45,12 +41,8 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     public void updateProfileDetails(String email, ProfileDto updatedProfile) {
-        Optional<User> userOptional = userService.findByEmail(email);
-        if (userOptional.isEmpty()) {
-            throw new UserNotFoundException("User not found by email.");
-        }
+        User user = userService.findByEmail(email);
 
-        User user = userOptional.get();
         UserDetails details = user.getUserDetails();
 
         details.setFullName(updatedProfile.getFullName());
@@ -62,12 +54,8 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     public void deleteProfile(String email) {
-        Optional<User> userOptional = userService.findByEmail(email);
-        if (userOptional.isEmpty()) {
-            throw new UserNotFoundException("User not found by email.");
-        }
+        User user = userService.findByEmail(email);
 
-        User user = userOptional.get();
         UserDetails userDetails = user.getUserDetails();
 
         user.setUserDetails(null);
@@ -77,13 +65,8 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     public void resetPassword(String email, String newPassword) {
-        Optional<User> userOptional = userService.findByEmail(email);
-        if (userOptional.isEmpty()) {
-            throw new UserNotFoundException("User not found by email.");
-        }
-        System.out.println(newPassword);
-        System.out.println("asdasdasd");
-        User user = userOptional.get();
+        User user = userService.findByEmail(email);
+
         String encodedPassword = passwordEncoder.encode(newPassword);
         user.setPassword(encodedPassword);
 

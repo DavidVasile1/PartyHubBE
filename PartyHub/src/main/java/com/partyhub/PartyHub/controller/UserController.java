@@ -23,8 +23,7 @@ public class UserController {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String email = authentication.getName();
-            User user = userService.findByEmail(email)
-                    .orElseThrow(() -> new UserNotFoundException("User not found!"));
+            User user = userService.findByEmail(email);
             if (user.getPromoCode() == null || user.getPromoCode().isEmpty()) {
                 return new ResponseEntity<>(new ApiResponse(false, "Promo code does not exists") , HttpStatus.BAD_REQUEST);
             } else {
@@ -40,8 +39,7 @@ public class UserController {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String email = authentication.getName();
-            User user = userService.findByEmail(email)
-                    .orElseThrow(() -> new UserNotFoundException("User not found!"));
+            User user = userService.findByEmail(email);
             if (user.getPromoCode() == null || user.getPromoCode().isEmpty()) {
                 userService.generateAndSetPromoCodeForUser(user.getId());
                 return new ResponseEntity<>(new ApiResponse(true, user.getPromoCode()), HttpStatus.OK);
@@ -58,7 +56,7 @@ public class UserController {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String email = authentication.getName();
-            User user = userService.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found!"));
+            User user = userService.findByEmail(email);
 
             if (!isValidPromoCode(newPromoCode)) {
                 return new ResponseEntity<>(new ApiResponse(false, "Invalid promo code format"), HttpStatus.BAD_REQUEST);

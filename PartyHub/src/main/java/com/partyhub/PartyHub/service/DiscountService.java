@@ -6,7 +6,7 @@ import java.util.Optional;
 
 public interface DiscountService {
     Discount saveDiscount(Discount discount);
-    Optional<Discount> findByCode(String code);
-    public void deleteDiscountByCode(String code);
+     Discount findByCode(String code);
+     void deleteDiscountByCode(String code);
 
 }
