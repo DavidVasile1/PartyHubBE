@@ -22,6 +22,7 @@ import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import java.io.ByteArrayOutputStream;
+import java.time.LocalDateTime;
 import java.util.Base64;
 
 import java.math.BigDecimal;
@@ -93,10 +94,9 @@ public class PaymentController {
 
     private float calculateDiscount(ChargeRequest chargeRequest, Event event) {
         float discount = 0f;
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        User user = userService.findByEmail(email); // Presupunem că acum findByEmail aruncă o excepție dacă nu găsește utilizatorul
+        User user = userService.findByEmail(email);
 
         // Aplică discount pentru biletul următor, dacă există
         try {
@@ -127,16 +127,27 @@ public class PaymentController {
 
                 discount += discountForNextTicketReferral.getValue() * chargeRequest.getTickets();
                 discountForNextTicketService.useDiscountForNextTicket(discountForNextTicketReferral);
-            } catch (DiscountForNextTicketNotFoundException e) {
-                // Opțional: Tratează cazul în care discount-ul de referral nu este găsit
-            } catch (UserNotFoundException e) {
-                // Opțional: Tratează cazul în care utilizatorul de referral nu este găsit
+            } catch (DiscountForNextTicketNotFoundException | UserNotFoundException e) {
+                // Opțional: Tratează cazul în care discount-ul de referral sau utilizatorul de referral nu este găsit
             }
         }
 
+        // Verifică și aplică logica pentru biletele gratuite
+        int freeTicketsCount = (int) discount / 100;
+        if (freeTicketsCount > 0) {
+            List<Ticket> freeTickets = new ArrayList<>();
+            for (int i = 0; i < freeTicketsCount; i++) {
+                Ticket freeTicket = new Ticket(UUID.randomUUID(), LocalDateTime.now(), "FREE_TICKET", email, event);
+                freeTickets.add(ticketService.saveTicket(freeTicket));
+            }
+            sendTicketsEmail(email, freeTickets);
+        }
+
+        discount = discount % 100; // Ajustează discount-ul pentru următoarea utilizare
+
+
         return discount;
     }
-
 
 
     private List<Ticket> generateTickets(ChargeRequest chargeRequest, Event event) {
