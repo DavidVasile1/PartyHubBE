@@ -17,7 +17,8 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/scan")
+@RequestMapping("/api/scanner")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class ScannerController {
 
     private final TicketService ticketService;
@@ -31,18 +32,7 @@ public class ScannerController {
 
             if (ticket.getValidationDate() == null) {
                 ticket.setValidationDate(LocalDateTime.now());
-                Event event = ticket.getEvent();
-                Statistics statistics = event.getStatistics();
-                if (statistics == null) {
-                    statistics = new Statistics();
-
-                }
-
-                if ("invite".equals(ticket.getType())) {
-                    statistics.setInvitationBasedAttendees(statistics.getInvitationBasedAttendees() + 1);
-                } else {
-                    statistics.setTicketBasedAttendees(statistics.getTicketBasedAttendees() + 1);
-                }
+                Statistics statistics = getStatistics(ticket);
                 statisticsService.save(statistics);
 
                 ticketService.saveTicket(ticket);
@@ -55,5 +45,21 @@ public class ScannerController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse(false, "An error occurred while validating the ticket."));
         }
+    }
+
+    private static Statistics getStatistics(Ticket ticket) {
+        Event event = ticket.getEvent();
+        Statistics statistics = event.getStatistics();
+        if (statistics == null) {
+            statistics = new Statistics();
+
+        }
+
+        if ("invite".equals(ticket.getType())) {
+            statistics.setInvitationBasedAttendees(statistics.getInvitationBasedAttendees() + 1);
+        } else {
+            statistics.setTicketBasedAttendees(statistics.getTicketBasedAttendees() + 1);
+        }
+        return statistics;
     }
 }

@@ -11,6 +11,8 @@ import com.stripe.param.ChargeCreateParams;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.qrcode.QRCodeWriter;
@@ -52,14 +54,20 @@ public class PaymentController {
 
         Stripe.apiKey = apiKey;
 
-        Event event = eventService.getEventById(chargeRequest.getEventId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
-        if(event.getTicketsLeft() <= 0){
+        Event event = eventService.getEventById(chargeRequest.getEventId());
+
+        if(eventService.isSoldOud(chargeRequest.getEventId())){
             return new ApiResponse(false, "Tickets sold out!");
         }
 
         float discount = calculateDiscount(chargeRequest, event);
         float price = (chargeRequest.getTickets() * event.getPrice() - discount) * 100;
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        Optional<User> user =  userService.findByEmail(email);
+
+        discountForNextTicketService.addOrUpdateDiscountForUser(user.get(),event, (int) (chargeRequest.getTickets()*event.getPrice()));
 
         ChargeCreateParams params = ChargeCreateParams.builder()
                 .setAmount((long) price)
@@ -75,14 +83,20 @@ public class PaymentController {
 
         this.eventService.updateTicketsLeft(chargeRequest.getTickets(), event);
 
-
-
         PaymentResponse paymentResponse =  new PaymentResponse(charge.getId(), charge.getAmount(), charge.getCurrency(), charge.getDescription());
         return new ApiResponse(true,paymentResponse.toString() );
     }
 
     private float calculateDiscount(ChargeRequest chargeRequest, Event event) {
         AtomicReference<Float> discount = new AtomicReference<>(0f);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        Optional<User> user =  userService.findByEmail(email);
+        int discountForNextTicketValue =  discountForNextTicketService.findDiscountForUserAndEvent(user.get().getUserDetails(), event).get().getValue();
+        if(!email.isEmpty()){
+            discount.updateAndGet(v -> v + discountForNextTicketValue);
+        }
 
         if (!chargeRequest.getDiscountCode().isEmpty()) {
             discountService.findByCode(chargeRequest.getDiscountCode())
@@ -95,7 +109,7 @@ public class PaymentController {
 
         if (!chargeRequest.getReferralEmail().isEmpty()) {
             userService.findByEmail(chargeRequest.getReferralEmail())
-                    .map(User::getUserDetails) // Assuming a method or mapping exists
+                    .map(User::getUserDetails)
                     .flatMap(userDetails -> discountForNextTicketService.findDiscountForUserAndEvent(userDetails, event))
                     .ifPresent(discountForNextTicket -> {
                         float updatedDiscount = discount.get() + discountForNextTicket.getValue() * chargeRequest.getTickets();

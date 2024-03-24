@@ -4,6 +4,7 @@ import com.partyhub.PartyHub.dto.EventStatisticsDTO;
 import com.partyhub.PartyHub.dto.EventSummaryDto;
 import com.partyhub.PartyHub.entities.Event;
 import com.partyhub.PartyHub.entities.Statistics;
+import com.partyhub.PartyHub.exceptions.EventNotFoundException;
 import com.partyhub.PartyHub.repository.EventRepository;
 import com.partyhub.PartyHub.service.EventService;
 import com.partyhub.PartyHub.service.StatisticsService;
@@ -60,8 +61,8 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Optional<Event> getEventById(UUID id) {
-        return eventRepository.findById(id);
+    public Event getEventById(UUID id) {
+        return eventRepository.findById(id).orElseThrow(()->new EventNotFoundException("Event not found!"));
     }
     @Override
     public List<EventSummaryDto> getAllEventSummaries() {
@@ -111,5 +112,11 @@ public class EventServiceImpl implements EventService {
     public void updateTicketsLeft(int tickets, Event event) {
         event.setTicketsLeft(event.getTicketsLeft() - tickets);
         this.addEvent(event);
+    }
+
+    @Override
+    public boolean isSoldOud(UUID eventId) {
+        Event event = this.getEventById(eventId);
+        return event.getTicketsLeft() <= 0;
     }
 }

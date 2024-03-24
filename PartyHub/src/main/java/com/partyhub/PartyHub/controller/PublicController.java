@@ -38,15 +38,11 @@ public class PublicController {
     @GetMapping("/event/{id}")
     public ResponseEntity<EventDto> getEvent(@PathVariable UUID id) {
         try {
-            Optional<Event> event = eventService.getEventById(id);
-            if (event.isPresent()) {
-                Event event1 = event.get();
-                EventDto eventDto = eventMapper.eventToDto(event1);
-                eventDto.setMainBanner(null);
-                return new ResponseEntity<>(eventDto, HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
+            Event event = eventService.getEventById(id);
+            EventDto eventDto = eventMapper.eventToDto(event);
+            eventDto.setMainBanner(null);
+            return new ResponseEntity<>(eventDto, HttpStatus.OK);
+
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
@@ -111,28 +107,31 @@ public class PublicController {
     }
     @GetMapping("/event-price/{id}")
     public ResponseEntity<BigDecimal> getEventPrice(@PathVariable UUID id) {
-        Optional<Event> eventOptional = eventService.getEventById(id);
-        if (eventOptional.isPresent()) {
-            Event event = eventOptional.get();
+        try {
+            Event event = eventService.getEventById(id);
             BigDecimal price = BigDecimal.valueOf(event.getPrice());
             return new ResponseEntity<>(price, HttpStatus.OK);
-        } else {
+        } catch (EventNotFoundException e){
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
     }
     @GetMapping("/event-payment-details/{id}")
     public ResponseEntity<EventTicketInfoDTO> getEventTicketInfo(@PathVariable UUID id) {
-        Event event = eventService.getEventById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
-
-        EventTicketInfoDTO eventTicketInfoDTO = new EventTicketInfoDTO(
+        try{
+            Event event = eventService.getEventById(id);
+            EventTicketInfoDTO eventTicketInfoDTO = new EventTicketInfoDTO(
                 BigDecimal.valueOf(event.getPrice()),
                 event.getDiscount(),
                 event.getTicketsLeft(),
                 event.getTicketsNumber()
-        );
 
-        return ResponseEntity.ok(eventTicketInfoDTO);
+            );
+            return ResponseEntity.ok(eventTicketInfoDTO);
+        }catch (EventNotFoundException e){
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+
+
     }
 
 }

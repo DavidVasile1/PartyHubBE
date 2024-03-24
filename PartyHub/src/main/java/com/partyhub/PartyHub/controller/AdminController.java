@@ -8,6 +8,7 @@ import com.partyhub.PartyHub.entities.Discount;
 import com.partyhub.PartyHub.entities.Event;
 import com.partyhub.PartyHub.entities.Statistics;
 import com.partyhub.PartyHub.entities.Ticket;
+import com.partyhub.PartyHub.exceptions.EventNotFoundException;
 import com.partyhub.PartyHub.mappers.EventMapper;
 import com.partyhub.PartyHub.service.*;
 import jakarta.validation.Valid;
@@ -104,13 +105,12 @@ public class AdminController {
         return new ResponseEntity<>(eventSummaries, HttpStatus.OK);
     }
 
-    @PostMapping("/events/{eventId}/invites")
+    @PostMapping("/invites/{eventId}")
     public ResponseEntity<?> generateAndSendInvites(@PathVariable UUID eventId,
                                                     @RequestBody Integer numberOfInvites,
                                                     Principal principal) {
         String userEmail = principal.getName();
-        Event event = eventService.getEventById(eventId)
-                .orElseThrow(() -> new RuntimeException("Event not found with ID: " + eventId));
+        Event event = eventService.getEventById(eventId);
 
         List<Ticket> invites = new ArrayList<>();
         for (int i = 0; i < numberOfInvites; i++) {
@@ -139,11 +139,7 @@ public class AdminController {
     public ResponseEntity<ApiResponse> createDiscount(@RequestParam UUID eventId,
                                                       @RequestParam int discountValue) {
         try {
-            Optional<Event> eventOptional = eventService.getEventById(eventId);
-            if (eventOptional.isEmpty()) {
-                return new ResponseEntity<>(new ApiResponse(false, "Event not found!"), HttpStatus.NOT_FOUND);
-            }
-
+            Event event = eventService.getEventById(eventId);
 
             String code = generateRandomCode();
 
@@ -155,6 +151,9 @@ public class AdminController {
             discountService.saveDiscount(discount);
 
             return new ResponseEntity<>(new ApiResponse(true, code), HttpStatus.CREATED);
+        }catch(EventNotFoundException e) {
+            return new ResponseEntity<>(new ApiResponse(false, "Event not found!"), HttpStatus.NOT_FOUND);
+
         } catch (Exception e) {
             return new ResponseEntity<>(new ApiResponse(false, "Discount not created!"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -187,7 +186,7 @@ public class AdminController {
         return new ResponseEntity<>(upcomingEvents, HttpStatus.OK);
     }
 
-    @GetMapping("/event/{eventId}/data")
+    @GetMapping("/event-statistics/{eventId}")
     public ResponseEntity<?> getEventData(@PathVariable UUID eventId) {
         Optional<EventStatisticsDTO> eventStatisticsDTO = eventService.getEventStatisticsDTO(eventId);
 

@@ -17,7 +17,6 @@ public class Statistics {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
-
     private int ticketsSold;
     private BigDecimal moneyEarned;
     private int generatedInvites;
