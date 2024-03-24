@@ -54,42 +54,47 @@ public class PaymentController {
 
 
     @PostMapping("/charge")
-    public ApiResponse chargeCard(@RequestBody ChargeRequest chargeRequest) throws StripeException {
+    public ApiResponse chargeCard(@RequestBody ChargeRequest chargeRequest) {
+        try {
+            Stripe.apiKey = apiKey;
 
-        Stripe.apiKey = apiKey;
+            Event event = eventService.getEventById(chargeRequest.getEventId());
 
-        Event event = eventService.getEventById(chargeRequest.getEventId());
+            if(eventService.isSoldOud(chargeRequest.getEventId())){
+                return new ApiResponse(false, "Tickets sold out!");
+            }
 
-        if(eventService.isSoldOud(chargeRequest.getEventId())){
-            return new ApiResponse(false, "Tickets sold out!");
+            float discount = calculateDiscount(chargeRequest, event);
+            float price = (chargeRequest.getTickets() * event.getPrice()) * 100 - discount;
+            if(!chargeRequest.getReferralEmail().isEmpty()){
+                User referalUser = userService.findByEmail(chargeRequest.getReferralEmail());
+                discountForNextTicketService.addOrUpdateDiscountForUser(referalUser, event, (int) (chargeRequest.getTickets() * event.getDiscount()));
+            }
+
+            ChargeCreateParams params = ChargeCreateParams.builder()
+                    .setAmount((long) price)
+                    .setCurrency("RON")
+                    .setDescription("Payment for " + chargeRequest.getTickets() + " tickets to " + event.getName())
+                    .setSource(chargeRequest.getToken())
+                    .build();
+
+            Charge charge = Charge.create(params);
+
+            List<Ticket> tickets = generateTickets(chargeRequest, event);
+            sendTicketsEmail(chargeRequest.getUserEmail(), tickets);
+
+            eventService.updateTicketsLeft(chargeRequest.getTickets(), event);
+
+            PaymentResponse paymentResponse = new PaymentResponse(charge.getId(), charge.getAmount(), charge.getCurrency(), charge.getDescription());
+            return new ApiResponse(true, paymentResponse.toString());
+        } catch (StripeException e) {
+            return new ApiResponse(false, "Stripe error: " + e.getMessage());
+        } catch (Exception e) {
+            // Log the exception details (not shown here) to help with debugging
+            return new ApiResponse(false, "An error occurred: " + e.getMessage());
         }
-
-        float discount = calculateDiscount(chargeRequest, event);
-        float price = (chargeRequest.getTickets() * event.getPrice() - discount) * 100;
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-        User user =  userService.findByEmail(email);
-
-        discountForNextTicketService.addOrUpdateDiscountForUser(user,event, (int) (chargeRequest.getTickets()*event.getPrice()));
-
-        ChargeCreateParams params = ChargeCreateParams.builder()
-                .setAmount((long) price)
-                .setCurrency("RON")
-                .setDescription("Payment for " + chargeRequest.getTickets() + " tickets to " + event.getName())
-                .setSource(chargeRequest.getToken())
-                .build();
-
-        Charge charge = Charge.create(params);
-
-        List<Ticket> tickets = generateTickets(chargeRequest, event);
-        sendTicketsEmail(chargeRequest.getUserEmail(), tickets);
-
-        this.eventService.updateTicketsLeft(chargeRequest.getTickets(), event);
-
-        PaymentResponse paymentResponse =  new PaymentResponse(charge.getId(), charge.getAmount(), charge.getCurrency(), charge.getDescription());
-        return new ApiResponse(true,paymentResponse.toString() );
     }
+
 
     private float calculateDiscount(ChargeRequest chargeRequest, Event event) {
         float discount = 0f;
@@ -133,6 +138,7 @@ public class PaymentController {
                 // Opțional: Tratează cazul în care utilizatorul de referral nu este găsit
             }
         }
+
 
         return discount;
     }

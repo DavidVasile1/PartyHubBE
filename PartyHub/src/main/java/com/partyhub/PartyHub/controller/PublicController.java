@@ -7,6 +7,7 @@ import com.partyhub.PartyHub.entities.Discount;
 import com.partyhub.PartyHub.entities.DiscountForNextTicket;
 import com.partyhub.PartyHub.entities.Event;
 import com.partyhub.PartyHub.entities.User;
+import com.partyhub.PartyHub.exceptions.DiscountForNextTicketNotFoundException;
 import com.partyhub.PartyHub.exceptions.EventNotFoundException;
 import com.partyhub.PartyHub.mappers.EventMapper;
 import com.partyhub.PartyHub.service.DiscountForNextTicketService;
@@ -107,7 +108,6 @@ public class PublicController {
                 return false;
             }
         }
-
         return true;
     }
     @GetMapping("/event-price/{id}")
@@ -122,13 +122,18 @@ public class PublicController {
     }
     @GetMapping("/event-payment-details/{id}")
     public ResponseEntity<EventTicketInfoDTO> getEventTicketInfo(@PathVariable UUID id) {
-        try{
+        try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String email = authentication.getName();
             User user = userService.findByEmail(email);
             Event event = eventService.getEventById(id);
 
-            int discountForNextTicket = discountForNextTicketService.findDiscountForUserAndEvent(user.getUserDetails(),event).getValue();
+            int discountForNextTicket = 0;
+            try {
+                discountForNextTicket = discountForNextTicketService.findDiscountForUserAndEvent(user.getUserDetails(), event).getValue();
+            } catch (DiscountForNextTicketNotFoundException e) {
+                discountForNextTicketService.addOrUpdateDiscountForUser(user, event, 0);
+            }
 
             EventTicketInfoDTO eventTicketInfoDTO = new EventTicketInfoDTO(
                     BigDecimal.valueOf(event.getPrice()),
@@ -141,8 +146,5 @@ public class PublicController {
         }catch (EventNotFoundException e){
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
-
-
     }
-
 }
