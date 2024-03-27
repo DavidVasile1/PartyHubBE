@@ -21,7 +21,7 @@ public class DiscountForNextTicketServiceImpl implements DiscountForNextTicketSe
 
     @Override
     public void addOrUpdateDiscountForUser(User user, Event event, int increaseAmount) {
-        UserDetails userDetails = user.getUserDetails(); // Assuming such a method exists
+        UserDetails userDetails = user.getUserDetails();
         Optional<DiscountForNextTicket> existingDiscount = discountForNextTicketRepository.findByUserDetailsAndEvent(userDetails, event);
         if (existingDiscount.isPresent()) {
             DiscountForNextTicket discount = existingDiscount.get();
@@ -29,7 +29,7 @@ public class DiscountForNextTicketServiceImpl implements DiscountForNextTicketSe
             discountForNextTicketRepository.save(discount);
         } else {
             DiscountForNextTicket newDiscount = new DiscountForNextTicket();
-            newDiscount.setUserDetails(userDetails); // Correctly setting UserDetails
+            newDiscount.setUserDetails(userDetails);
             newDiscount.setEvent(event);
             newDiscount.setValue(increaseAmount);
             discountForNextTicketRepository.save(newDiscount);
@@ -47,5 +47,10 @@ public class DiscountForNextTicketServiceImpl implements DiscountForNextTicketSe
         // Logic to mark a discount as used, which could be deleting it or updating a status
         // For example, if deleting:
         discountForNextTicketRepository.delete(discountForNextTicket);
+    }
+
+    @Override
+    public void saveDiscountForNextTicket(DiscountForNextTicket discountForNextTicket) {
+        discountForNextTicketRepository.save(discountForNextTicket);
     }
 }

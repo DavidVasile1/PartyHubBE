@@ -125,14 +125,16 @@ public class PublicController {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String email = authentication.getName();
-            User user = userService.findByEmail(email);
             Event event = eventService.getEventById(id);
-
             int discountForNextTicket = 0;
-            try {
-                discountForNextTicket = discountForNextTicketService.findDiscountForUserAndEvent(user.getUserDetails(), event).getValue();
-            } catch (DiscountForNextTicketNotFoundException e) {
-                discountForNextTicketService.addOrUpdateDiscountForUser(user, event, 0);
+
+            if(!email.equals("anonymousUser")){
+                User user = userService.findByEmail(email);
+                try {
+                    discountForNextTicket = discountForNextTicketService.findDiscountForUserAndEvent(user.getUserDetails(), event).getValue();
+                } catch (DiscountForNextTicketNotFoundException e) {
+                    discountForNextTicketService.addOrUpdateDiscountForUser(user, event, 0);
+                }
             }
 
             EventTicketInfoDTO eventTicketInfoDTO = new EventTicketInfoDTO(

@@ -5,6 +5,7 @@ import com.partyhub.PartyHub.dto.PaymentResponse;
 import com.partyhub.PartyHub.entities.*;
 import com.partyhub.PartyHub.exceptions.DiscountForNextTicketNotFoundException;
 import com.partyhub.PartyHub.exceptions.DiscountNotFoundException;
+import com.partyhub.PartyHub.exceptions.EventNotFoundException;
 import com.partyhub.PartyHub.exceptions.UserNotFoundException;
 import com.partyhub.PartyHub.service.*;
 import com.stripe.Stripe;
@@ -66,11 +67,9 @@ public class PaymentController {
             }
 
             float discount = calculateDiscount(chargeRequest, event);
+            System.out.println(discount);
             float price = (chargeRequest.getTickets() * event.getPrice()) * 100 - discount;
-            if(!chargeRequest.getReferralEmail().isEmpty()){
-                User referalUser = userService.findByEmail(chargeRequest.getReferralEmail());
-                discountForNextTicketService.addOrUpdateDiscountForUser(referalUser, event, (int) (chargeRequest.getTickets() * event.getDiscount()));
-            }
+            System.out.println(price);
 
             ChargeCreateParams params = ChargeCreateParams.builder()
                     .setAmount((long) price)
@@ -90,8 +89,11 @@ public class PaymentController {
             return new ApiResponse(true, paymentResponse.toString());
         } catch (StripeException e) {
             return new ApiResponse(false, "Stripe error: " + e.getMessage());
+        }catch (UserNotFoundException e) {
+            return new ApiResponse(false, "User not found!: " + e.getMessage());
+        }catch (EventNotFoundException e) {
+            return new ApiResponse(false, "Event not found!: " + e.getMessage());
         } catch (Exception e) {
-            // Log the exception details (not shown here) to help with debugging
             return new ApiResponse(false, "An error occurred: " + e.getMessage());
         }
     }
@@ -99,58 +101,52 @@ public class PaymentController {
 
     private float calculateDiscount(ChargeRequest chargeRequest, Event event) {
         float discount = 0f;
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-        User user = userService.findByEmail(email);
 
-        // Aplică discount pentru biletul următor, dacă există
         try {
+            User user = userService.findByEmail(chargeRequest.getUserEmail());
             DiscountForNextTicket discountForNextTicket = discountForNextTicketService.findDiscountForUserAndEvent(user.getUserDetails(), event);
             discount += discountForNextTicket.getValue() * chargeRequest.getTickets();
             discountForNextTicketService.useDiscountForNextTicket(discountForNextTicket);
-        } catch (DiscountForNextTicketNotFoundException e) {
-            // Opțional: Tratează cazul în care discount-ul pentru biletul următor nu este găsit
+            System.out.println("discount after applying discount for next ticket" + discount);
+        } catch (RuntimeException e) {
+            System.out.println(e.getMessage());
         }
 
-        // Aplică discount folosind codul de discount, dacă este furnizat
         if (!chargeRequest.getDiscountCode().isEmpty()) {
             try {
                 Discount discountEntity = discountService.findByCode(chargeRequest.getDiscountCode());
-                discount += discountEntity.getDiscountValue() * event.getPrice() * chargeRequest.getTickets();
+                discount += discountEntity.getDiscountValue() * event.getPrice();
                 discountService.deleteDiscountByCode(chargeRequest.getDiscountCode());
-            } catch (DiscountNotFoundException e) {
-                // Opțional: Tratează cazul în care codul de discount nu este găsit
+                System.out.println("discount using discount code" + discount);
+            } catch (RuntimeException e) {
+                System.out.println(e.getMessage());
             }
         }
 
-        // Aplică discount pentru referral, dacă este furnizat
         if (!chargeRequest.getReferralEmail().isEmpty()) {
             try {
                 User referrerUser = userService.findByEmail(chargeRequest.getReferralEmail());
-                UserDetails referrerUserDetails = referrerUser.getUserDetails();
-                DiscountForNextTicket discountForNextTicketReferral = discountForNextTicketService.findDiscountForUserAndEvent(referrerUserDetails, event);
+                discountForNextTicketService.addOrUpdateDiscountForUser(referrerUser, event, (int) (event.getDiscount()*chargeRequest.getTickets()));
+                discount += event.getDiscount()*chargeRequest.getTickets()*event.getPrice();
+                DiscountForNextTicket discountForNextTicket = discountForNextTicketService.findDiscountForUserAndEvent(referrerUser.getUserDetails(),event);
+                int freeTicketsCount = (int) discountForNextTicket.getValue() / 100;
+                if (freeTicketsCount > 0) {
+                    List<Ticket> freeTickets = new ArrayList<>();
+                    for (int i = 0; i < freeTicketsCount; i++) {
+                        Ticket freeTicket = new Ticket(UUID.randomUUID(), LocalDateTime.now(), "FREE_TICKET", chargeRequest.getReferralEmail(), event);
+                        freeTickets.add(ticketService.saveTicket(freeTicket));
+                    }
+                    sendTicketsEmail(chargeRequest.getReferralEmail(), freeTickets);
+                }
+                System.out.println("the discount for next ticket of referal user is increased by " + (int) (event.getDiscount()*chargeRequest.getTickets()));
+                System.out.println("the discount using promocode is " + discount);
+                discountForNextTicket.setValue(discountForNextTicket.getValue()%100);
+                discountForNextTicketService.saveDiscountForNextTicket(discountForNextTicket);
 
-                discount += discountForNextTicketReferral.getValue() * chargeRequest.getTickets();
-                discountForNextTicketService.useDiscountForNextTicket(discountForNextTicketReferral);
-            } catch (DiscountForNextTicketNotFoundException | UserNotFoundException e) {
-                // Opțional: Tratează cazul în care discount-ul de referral sau utilizatorul de referral nu este găsit
+            } catch (RuntimeException e) {
+                System.out.println(e.getMessage());
             }
         }
-
-        // Verifică și aplică logica pentru biletele gratuite
-        int freeTicketsCount = (int) discount / 100;
-        if (freeTicketsCount > 0) {
-            List<Ticket> freeTickets = new ArrayList<>();
-            for (int i = 0; i < freeTicketsCount; i++) {
-                Ticket freeTicket = new Ticket(UUID.randomUUID(), LocalDateTime.now(), "FREE_TICKET", email, event);
-                freeTickets.add(ticketService.saveTicket(freeTicket));
-            }
-            sendTicketsEmail(email, freeTickets);
-        }
-
-        discount = discount % 100; // Ajustează discount-ul pentru următoarea utilizare
-
-
 
         return discount;
     }
@@ -204,5 +200,5 @@ public class PaymentController {
         statistics.setTicketsSold(statistics.getTicketsSold() + ticketsSold);
         statistics.setMoneyEarned(statistics.getMoneyEarned().add(BigDecimal.valueOf(moneyEarned)));
         statisticsService.save(statistics);
-}
+    }
 }

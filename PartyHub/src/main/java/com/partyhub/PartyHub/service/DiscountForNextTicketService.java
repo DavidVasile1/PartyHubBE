@@ -11,5 +11,6 @@ public interface DiscountForNextTicketService {
     void addOrUpdateDiscountForUser(User user, Event event, int increaseAmount);
     DiscountForNextTicket findDiscountForUserAndEvent(UserDetails userDetails, Event event);
     void useDiscountForNextTicket(DiscountForNextTicket discountForNextTicket);
+    void saveDiscountForNextTicket(DiscountForNextTicket discountForNextTicket);
 
 }
