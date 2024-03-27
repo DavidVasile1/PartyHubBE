@@ -1,7 +1,9 @@
 package com.partyhub.PartyHub.controller;
 
+import com.partyhub.PartyHub.dto.TicketDTO;
 import com.partyhub.PartyHub.entities.User;
 import com.partyhub.PartyHub.exceptions.UserNotFoundException;
+import com.partyhub.PartyHub.service.TicketService;
 import com.partyhub.PartyHub.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -10,6 +12,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*", allowedHeaders = "*")
@@ -17,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final TicketService ticketService;
 
     @GetMapping("/promo-code")
     public ResponseEntity<ApiResponse> getPromoCode() {
@@ -99,6 +104,20 @@ public class UserController {
             return new ResponseEntity<>("Promo code exists", HttpStatus.OK);
         } else {
             return new ResponseEntity<>("Promo code does not exist", HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/tickets")
+    public ResponseEntity<List<TicketDTO>> getTicketsByEmail(@RequestParam String email) {
+        try {
+            List<TicketDTO> tickets = ticketService.getAllTicketsByEmail(email);
+            if (tickets != null && !tickets.isEmpty()) {
+                return new ResponseEntity<>(tickets, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

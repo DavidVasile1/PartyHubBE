@@ -58,7 +58,7 @@ CREATE TABLE event (
     date DATE,
     details TEXT,
     price FLOAT,
-    discount FLOAT,
+    discount INT,
     tickets_number INT,
     tickets_left INT,
     statistics_id UUID
