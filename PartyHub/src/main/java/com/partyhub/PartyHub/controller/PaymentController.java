@@ -67,9 +67,7 @@ public class PaymentController {
             }
 
             float discount = calculateDiscount(chargeRequest, event);
-            System.out.println(discount);
             float price = (chargeRequest.getTickets() * event.getPrice()) * 100 - discount;
-            System.out.println(price);
 
             ChargeCreateParams params = ChargeCreateParams.builder()
                     .setAmount((long) price)
@@ -79,6 +77,8 @@ public class PaymentController {
                     .build();
 
             Charge charge = Charge.create(params);
+
+            updateEventStatistics(event, chargeRequest.getTickets(), price);
 
             List<Ticket> tickets = generateTickets(chargeRequest, event);
             sendTicketsEmail(chargeRequest.getUserEmail(), tickets);
@@ -105,7 +105,7 @@ public class PaymentController {
         try {
             User user = userService.findByEmail(chargeRequest.getUserEmail());
             DiscountForNextTicket discountForNextTicket = discountForNextTicketService.findDiscountForUserAndEvent(user.getUserDetails(), event);
-            discount += discountForNextTicket.getValue() * chargeRequest.getTickets();
+            discount += discountForNextTicket.getValue() * event.getPrice();
             discountForNextTicketService.useDiscountForNextTicket(discountForNextTicket);
             System.out.println("discount after applying discount for next ticket" + discount);
         } catch (RuntimeException e) {
@@ -133,7 +133,7 @@ public class PaymentController {
                 if (freeTicketsCount > 0) {
                     List<Ticket> freeTickets = new ArrayList<>();
                     for (int i = 0; i < freeTicketsCount; i++) {
-                        Ticket freeTicket = new Ticket(UUID.randomUUID(), LocalDateTime.now(), "FREE_TICKET", chargeRequest.getReferralEmail(), event);
+                        Ticket freeTicket = new Ticket(UUID.randomUUID(), null, "FREE_TICKET", chargeRequest.getReferralEmail(), event);
                         freeTickets.add(ticketService.saveTicket(freeTicket));
                     }
                     sendTicketsEmail(chargeRequest.getReferralEmail(), freeTickets);

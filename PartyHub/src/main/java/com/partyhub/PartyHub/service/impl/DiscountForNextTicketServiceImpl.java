@@ -44,8 +44,6 @@ public class DiscountForNextTicketServiceImpl implements DiscountForNextTicketSe
 
     @Override
     public void useDiscountForNextTicket(DiscountForNextTicket discountForNextTicket) {
-        // Logic to mark a discount as used, which could be deleting it or updating a status
-        // For example, if deleting:
         discountForNextTicketRepository.delete(discountForNextTicket);
     }
 
