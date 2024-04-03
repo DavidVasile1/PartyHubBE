@@ -37,7 +37,7 @@ public class ScannerController {
                 ticketService.saveTicket(ticket);
                 return ResponseEntity.ok(new ApiResponse(true, "Ticket has been successfully validated."));
             } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse(false, "Ticket has already been used and cannot be validated again."));
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse(false, ticket.getValidationDate().toString()));
             }
         } catch (TicketNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(false, e.getMessage()));
