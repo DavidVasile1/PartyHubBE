@@ -57,9 +57,15 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Event getNearestEvent() {
-        return eventRepository.findTopByDateAfterOrderByDateAsc(LocalDate.now())
-                .orElseThrow(() -> new EventNotFoundException("No upcoming events found"));
+    public Event getNearestEvent(Optional<String> city) {
+        LocalDate today = LocalDate.now();
+        if(city.isPresent()) {
+            return eventRepository.findTopByCityAndDateAfterOrderByDateAsc(city.get(), today)
+                    .orElseThrow(() -> new EventNotFoundException("No upcoming events found in " + city.get()));
+        } else {
+            return eventRepository.findTopByDateAfterOrderByDateAsc(today)
+                    .orElseThrow(() -> new EventNotFoundException("No upcoming events found"));
+        }
     }
 
     @Override
@@ -131,4 +137,6 @@ public class EventServiceImpl implements EventService {
             eventRepository.deleteById(eventId);
         }
     }
+
+
 }

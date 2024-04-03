@@ -11,7 +11,7 @@ import java.util.UUID;
 public interface EventService {
     Event addEvent(Event event);
     Event editEvent(UUID id, Event eventDetails);
-     Event getNearestEvent();
+
     Event getEventById(UUID id);
      List<EventSummaryDto> getAllEventSummaries();
     List<EventSummaryDto> getUpcomingEvents();
@@ -20,6 +20,7 @@ public interface EventService {
 
     boolean isSoldOud(UUID eventId);
     void deleteEventAndTicketsKeepStatistics(UUID eventId);
+    Event getNearestEvent(Optional<String> city);
 
 }
 

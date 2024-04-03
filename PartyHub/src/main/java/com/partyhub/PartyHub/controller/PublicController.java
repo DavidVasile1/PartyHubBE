@@ -58,7 +58,7 @@ public class PublicController {
     @GetMapping("/event")
     public ResponseEntity<EventPhotoDto> getNearestEventPhoto() {
         try {
-            Event nearestEvent = eventService.getNearestEvent();
+            Event nearestEvent = eventService.getNearestEvent(Optional.empty());
             EventPhotoDto eventPhotoDto = eventMapper.eventToEventPhotoDto(nearestEvent);
             if (eventPhotoDto != null) {
                 return new ResponseEntity<>(eventPhotoDto, HttpStatus.OK);
