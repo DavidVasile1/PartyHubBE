@@ -19,6 +19,7 @@ public interface EventService {
     void updateTicketsLeft(int tickets, Event event);
 
     boolean isSoldOud(UUID eventId);
+    void deleteEventAndTicketsKeepStatistics(UUID eventId);
 
 }
 

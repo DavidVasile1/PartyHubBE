@@ -6,6 +6,7 @@ import com.partyhub.PartyHub.entities.Event;
 import com.partyhub.PartyHub.entities.Statistics;
 import com.partyhub.PartyHub.exceptions.EventNotFoundException;
 import com.partyhub.PartyHub.repository.EventRepository;
+import com.partyhub.PartyHub.repository.TicketRepository;
 import com.partyhub.PartyHub.service.EventService;
 import com.partyhub.PartyHub.service.StatisticsService;
 import lombok.AllArgsConstructor;
@@ -25,6 +26,7 @@ public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
     private final StatisticsService statisticsService;
+    private final TicketRepository ticketRepository;
 
 
     @Override
@@ -53,6 +55,7 @@ public class EventServiceImpl implements EventService {
             throw new RuntimeException("Event not found for this id :: " + id);
         }
     }
+
     @Override
     public Event getNearestEvent() {
         return eventRepository.findTopByDateAfterOrderByDateAsc(LocalDate.now())
@@ -61,12 +64,13 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public Event getEventById(UUID id) {
-        return eventRepository.findById(id).orElseThrow(()->new EventNotFoundException("Event not found!"));
+        return eventRepository.findById(id).orElseThrow(() -> new EventNotFoundException("Event not found!"));
     }
+
     @Override
     public List<EventSummaryDto> getAllEventSummaries() {
         return eventRepository.findAll().stream()
-                .map(event -> new EventSummaryDto( event.getId(), event.getName(), event.getCity(), event.getDate()))
+                .map(event -> new EventSummaryDto(event.getId(), event.getName(), event.getCity(), event.getDate()))
                 .collect(Collectors.toList());
     }
 
@@ -77,6 +81,7 @@ public class EventServiceImpl implements EventService {
                 .map(event -> new EventSummaryDto(event.getName(), event.getCity(), event.getDate()))
                 .collect(Collectors.toList());
     }
+
     @Override
     public Optional<EventStatisticsDTO> getEventStatisticsDTO(UUID eventId) {
         Optional<Event> eventOptional = eventRepository.findById(eventId);
@@ -113,5 +118,17 @@ public class EventServiceImpl implements EventService {
     public boolean isSoldOud(UUID eventId) {
         Event event = this.getEventById(eventId);
         return event.getTicketsLeft() <= 0;
+    }
+
+    @Override
+    public void deleteEventAndTicketsKeepStatistics(UUID eventId) {
+        Optional<Event> eventOptional = eventRepository.findById(eventId);
+        if (eventOptional.isPresent()) {
+            Event event = eventOptional.get();
+            // Stergem biletele asociate evenimentului
+            ticketRepository.deleteByEventId(eventId);
+            // Stergem evenimentul, dar datorită setărilor de cascade, statisticile nu vor fi șterse
+            eventRepository.deleteById(eventId);
+        }
     }
 }
