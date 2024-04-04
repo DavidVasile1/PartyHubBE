@@ -18,7 +18,7 @@ public interface EventService {
     Optional<EventStatisticsDTO> getEventStatisticsDTO(UUID eventId);
     void updateTicketsLeft(int tickets, Event event);
 
-    boolean isSoldOud(UUID eventId);
+    boolean isSoldOut(UUID eventId);
     void deleteEventAndTicketsKeepStatistics(UUID eventId);
     Event getNearestEvent(Optional<String> city);
 

@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.2.0</version>
+		<version>3.2.4</version>
 		<relativePath/>
 	</parent>
 	<groupId>com.example</groupId>
@@ -153,6 +153,13 @@
 
 	<build>
 		<plugins>
+			<!-- Plugin Spring Boot pentru a facilita rularea și ambalarea aplicației -->
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+
+			<!-- Plugin Flyway pentru gestionarea migrațiilor bazei de date -->
 			<plugin>
 				<groupId>org.flywaydb</groupId>
 				<artifactId>flyway-maven-plugin</artifactId>
@@ -168,24 +175,30 @@
 						<location>classpath:db/migration</location>
 					</locations>
 					<table>schema_history</table>
-
 					<cleanDisabled>false</cleanDisabled>
 				</configuration>
 			</plugin>
+
+			<!-- Plugin ANTLR4 pentru generarea parsere-ului din gramatici -->
 			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
+				<groupId>org.antlr</groupId>
+				<artifactId>antlr4-maven-plugin</artifactId>
+				<version>4.13.0</version> <!-- Asigurați-vă că versiunea corespunde cu cea a runtime-ului ANTLR -->
+				<executions>
+					<execution>
+						<goals>
+							<goal>antlr4</goal>
+						</goals>
+					</execution>
+				</executions>
 				<configuration>
-					<excludes>
-						<exclude>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</exclude>
-					</excludes>
+					<sourceDirectory>${project.basedir}/src/main/antlr4</sourceDirectory>
+					<outputDirectory>${project.build.directory}/generated-sources/antlr4</outputDirectory>
+					<!-- Orice alte configurări specifice de care ai nevoie -->
 				</configuration>
 			</plugin>
 
+			<!-- Aici poți adăuga orice alte plugin-uri necesare proiectului tău -->
 		</plugins>
 	</build>
-
 </project>

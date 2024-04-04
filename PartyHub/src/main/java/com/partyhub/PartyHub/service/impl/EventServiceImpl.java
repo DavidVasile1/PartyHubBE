@@ -121,7 +121,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public boolean isSoldOud(UUID eventId) {
+    public boolean isSoldOut(UUID eventId) {
         Event event = this.getEventById(eventId);
         return event.getTicketsLeft() <= 0;
     }

@@ -3,10 +3,6 @@ package com.partyhub.PartyHub.controller;
 import com.partyhub.PartyHub.dto.ChargeRequest;
 import com.partyhub.PartyHub.dto.PaymentResponse;
 import com.partyhub.PartyHub.entities.*;
-import com.partyhub.PartyHub.exceptions.DiscountForNextTicketNotFoundException;
-import com.partyhub.PartyHub.exceptions.DiscountNotFoundException;
-import com.partyhub.PartyHub.exceptions.EventNotFoundException;
-import com.partyhub.PartyHub.exceptions.UserNotFoundException;
 import com.partyhub.PartyHub.service.*;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
@@ -14,27 +10,18 @@ import com.stripe.model.Charge;
 import com.stripe.param.ChargeCreateParams;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import java.io.ByteArrayOutputStream;
-import java.time.LocalDateTime;
 import java.util.Base64;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.Flow;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequiredArgsConstructor
@@ -58,28 +45,42 @@ public class PaymentController {
     @PostMapping("/charge")
     public ApiResponse chargeCard(@RequestBody ChargeRequest chargeRequest) {
         try {
-            Stripe.apiKey = apiKey;
-
             Event event = eventService.getEventById(chargeRequest.getEventId());
 
-            if(eventService.isSoldOud(chargeRequest.getEventId())){
-                return new ApiResponse(false, "Tickets sold out!");
+            if(eventService.isSoldOut(chargeRequest.getEventId())){
+                return new ApiResponse(false, "Biletele au fost vândute.");
             }
 
             float discount = calculateDiscount(chargeRequest, event);
             float price = (chargeRequest.getTickets() * event.getPrice()) * 100 - discount;
 
+            // Verifică dacă prețul final este 0
+            if (price <= 0) {
+                // Procesul de generare a biletelor și trimiterea prin email
+                List<Ticket> tickets = generateTickets(chargeRequest, event);
+                sendTicketsEmail(chargeRequest.getUserEmail(), tickets);
+
+                // Actualizează statisticile și numărul de bilete rămase fără o tranzacție Stripe
+                updateEventStatistics(event, chargeRequest.getTickets(), 0);
+
+                // Actualizează numărul de bilete rămase pentru eveniment
+                eventService.updateTicketsLeft(chargeRequest.getTickets(), event);
+
+                return new ApiResponse(true, "Biletele au fost emise cu succes, fără plată necesară.");
+            }
+
+            Stripe.apiKey = apiKey;
+
             ChargeCreateParams params = ChargeCreateParams.builder()
                     .setAmount((long) price)
                     .setCurrency("RON")
-                    .setDescription("Payment for " + chargeRequest.getTickets() + " tickets to " + event.getName())
+                    .setDescription("Plată pentru " + chargeRequest.getTickets() + " bilete la " + event.getName())
                     .setSource(chargeRequest.getToken())
                     .build();
 
             Charge charge = Charge.create(params);
 
-            updateEventStatistics(event, chargeRequest.getTickets(), price);
-
+            // Restul procesului de generare a biletelor, trimiterea prin email și actualizare statistici
             List<Ticket> tickets = generateTickets(chargeRequest, event);
             sendTicketsEmail(chargeRequest.getUserEmail(), tickets);
 
@@ -88,13 +89,9 @@ public class PaymentController {
             PaymentResponse paymentResponse = new PaymentResponse(charge.getId(), charge.getAmount(), charge.getCurrency(), charge.getDescription());
             return new ApiResponse(true, paymentResponse.toString());
         } catch (StripeException e) {
-            return new ApiResponse(false, "Stripe error: " + e.getMessage());
-        }catch (UserNotFoundException e) {
-            return new ApiResponse(false, "User not found!: " + e.getMessage());
-        }catch (EventNotFoundException e) {
-            return new ApiResponse(false, "Event not found!: " + e.getMessage());
+            return new ApiResponse(false, "Eroare Stripe: " + e.getMessage());
         } catch (Exception e) {
-            return new ApiResponse(false, "An error occurred: " + e.getMessage());
+            return new ApiResponse(false, "A apărut o eroare: " + e.getMessage());
         }
     }
 
