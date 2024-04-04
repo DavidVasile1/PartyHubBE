@@ -5,6 +5,7 @@ import com.partyhub.PartyHub.entities.User;
 import com.partyhub.PartyHub.exceptions.UserNotFoundException;
 import com.partyhub.PartyHub.service.TicketService;
 import com.partyhub.PartyHub.service.UserService;
+import com.partyhub.PartyHub.util.ValidationUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -63,7 +64,7 @@ public class UserController {
             String email = authentication.getName();
             User user = userService.findByEmail(email);
 
-            if (!isValidPromoCode(newPromoCode)) {
+            if (ValidationUtils.isValidPromoCode(newPromoCode)) {
                 return new ResponseEntity<>(new ApiResponse(false, "Invalid promo code format"), HttpStatus.BAD_REQUEST);
             }
 
@@ -82,20 +83,6 @@ public class UserController {
         }
     }
 
-    private boolean isValidPromoCode(String promoCode) {
-        if (promoCode == null || promoCode.length() != 9) {
-            return false;
-        }
-
-        for (int i = 0; i < promoCode.length(); i++) {
-            char ch = promoCode.charAt(i);
-            if (!Character.isLowerCase(ch) && !Character.isDigit(ch)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
 
     @GetMapping("/check-promo-code")
     public ResponseEntity<String> checkPromoCode(@RequestParam String promoCode) {

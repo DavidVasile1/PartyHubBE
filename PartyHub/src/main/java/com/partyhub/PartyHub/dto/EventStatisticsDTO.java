@@ -1,6 +1,5 @@
 package com.partyhub.PartyHub.dto;
 
-import com.partyhub.PartyHub.entities.Statistics;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

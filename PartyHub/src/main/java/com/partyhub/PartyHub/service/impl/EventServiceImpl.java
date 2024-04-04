@@ -9,9 +9,7 @@ import com.partyhub.PartyHub.repository.EventRepository;
 import com.partyhub.PartyHub.repository.TicketRepository;
 import com.partyhub.PartyHub.service.EventService;
 import com.partyhub.PartyHub.service.StatisticsService;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -90,28 +88,22 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public Optional<EventStatisticsDTO> getEventStatisticsDTO(UUID eventId) {
-        Optional<Event> eventOptional = eventRepository.findById(eventId);
-        if (!eventOptional.isPresent()) {
-            return Optional.empty();
-        }
-        Event event = eventOptional.get();
-
-        Statistics statistics = statisticsService.getStatisticsByEventId(eventId);
-
-        EventStatisticsDTO dto = new EventStatisticsDTO(
-                event.getName(),
-                event.getLocation(),
-                event.getDate(),
-                event.getPrice(),
-                event.getDiscount(),
-                statistics.getTicketsSold(),
-                statistics.getMoneyEarned(),
-                statistics.getGeneratedInvites(),
-                statistics.getTicketBasedAttendees(),
-                statistics.getInvitationBasedAttendees()
-        );
-
-        return Optional.of(dto);
+        return eventRepository.findById(eventId)
+                .map(event -> {
+                    Statistics statistics = statisticsService.getStatisticsByEventId(eventId);
+                    return new EventStatisticsDTO(
+                            event.getName(),
+                            event.getLocation(),
+                            event.getDate(),
+                            event.getPrice(),
+                            event.getDiscount(),
+                            statistics.getTicketsSold(),
+                            statistics.getMoneyEarned(),
+                            statistics.getGeneratedInvites(),
+                            statistics.getTicketBasedAttendees(),
+                            statistics.getInvitationBasedAttendees()
+                    );
+                });
     }
 
     @Override
@@ -130,7 +122,6 @@ public class EventServiceImpl implements EventService {
     public void deleteEventAndTicketsKeepStatistics(UUID eventId) {
         Optional<Event> eventOptional = eventRepository.findById(eventId);
         if (eventOptional.isPresent()) {
-            Event event = eventOptional.get();
             // Stergem biletele asociate evenimentului
             ticketRepository.deleteByEventId(eventId);
             // Stergem evenimentul, dar datorită setărilor de cascade, statisticile nu vor fi șterse

@@ -9,7 +9,7 @@ import com.partyhub.PartyHub.exceptions.TicketNotFoundException;
 import com.partyhub.PartyHub.repository.EventRepository;
 import com.partyhub.PartyHub.repository.TicketRepository;
 import com.partyhub.PartyHub.service.TicketService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,11 +18,11 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@AllArgsConstructor
 public class TicketServiceImpl implements TicketService {
 
-    @Autowired
+
     private TicketRepository ticketRepository;
-    @Autowired
     private EventRepository eventRepository;
 
 

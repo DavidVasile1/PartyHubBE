@@ -1,7 +1,6 @@
 package com.partyhub.PartyHub.security;
 
-import org.springframework.security.crypto.codec.Base64;
-
+import java.util.Base64;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
 
@@ -14,7 +13,7 @@ public class SecurityConstants {
             + "777217A25432A462D4A";
 
     public static Key hmacShaKeyFor() {
-        byte[] secretBytes = Base64.decode(JWT_SECRET.getBytes());
+        byte[] secretBytes = Base64.getDecoder().decode(JWT_SECRET);
         return new SecretKeySpec(secretBytes, "HmacSHA256");
     }
 }

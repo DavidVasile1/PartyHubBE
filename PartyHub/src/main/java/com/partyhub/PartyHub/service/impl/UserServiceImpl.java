@@ -1,17 +1,13 @@
 package com.partyhub.PartyHub.service.impl;
 
-import com.partyhub.PartyHub.entities.Event;
 import com.partyhub.PartyHub.entities.User;
-import com.partyhub.PartyHub.entities.UserDetails;
 import com.partyhub.PartyHub.exceptions.UserNotFoundException;
 import com.partyhub.PartyHub.repository.UserRepository;
-import com.partyhub.PartyHub.service.EventService;
 import com.partyhub.PartyHub.service.UserService;
 import com.partyhub.PartyHub.util.PromoCodeGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -19,7 +15,6 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final EventService eventService;
 
     @Override
     public User findByEmail(String email) {

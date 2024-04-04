@@ -13,7 +13,6 @@ import com.partyhub.PartyHub.mappers.EventMapper;
 import com.partyhub.PartyHub.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -139,7 +138,6 @@ public class AdminController {
     public ResponseEntity<ApiResponse> createDiscount(@RequestParam UUID eventId,
                                                       @RequestParam int discountValue) {
         try {
-            Event event = eventService.getEventById(eventId);
 
             String code = generateRandomCode();
 
@@ -191,7 +189,7 @@ public class AdminController {
         Optional<EventStatisticsDTO> eventStatisticsDTO = eventService.getEventStatisticsDTO(eventId);
 
         return eventStatisticsDTO
-                .map(dto -> ResponseEntity.ok(dto))
+                .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 

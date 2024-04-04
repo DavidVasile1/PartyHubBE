@@ -2,7 +2,6 @@ package com.partyhub.PartyHub.service;
 
 import com.partyhub.PartyHub.entities.User;
 
-import java.util.Optional;
 import java.util.UUID;
 
 public interface UserService {
