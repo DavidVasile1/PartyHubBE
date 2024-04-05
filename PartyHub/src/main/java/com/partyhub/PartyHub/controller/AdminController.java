@@ -84,19 +84,35 @@ public class AdminController {
     }
 
     @PutMapping("event/{id}")
-    public ResponseEntity<ApiResponse> editEvent(@PathVariable UUID id, @RequestBody EventDto eventDto) {
+    public ResponseEntity<Event> editEvent(@PathVariable UUID id,
+                                           @Valid @RequestParam("eventData") String eventDataJson,
+                                           @RequestParam(name = "mainBanner", required = false) MultipartFile mainBannerFile,
+                                           @RequestParam(name = "secondaryBanner", required = false) MultipartFile secondaryBannerFile) {
         try {
+            EventDto eventDto = objectMapper.readValue(eventDataJson, EventDto.class);
             Event event = eventMapper.dtoToEvent(eventDto);
+
+            if (mainBannerFile != null) {
+                byte[] mainBanner = processBannerFile(mainBannerFile);
+                event.setMainBanner(mainBanner);
+            }
+
+            if (secondaryBannerFile != null) {
+                byte[] secondaryBanner = processBannerFile(secondaryBannerFile);
+                event.setSecondaryBanner(secondaryBanner);
+            }
+
             Event updatedEvent = eventService.editEvent(id, event);
             if (updatedEvent != null) {
-                return new ResponseEntity<>(new ApiResponse(true, "Event updated!"), HttpStatus.OK);
+                return new ResponseEntity<>(updatedEvent, HttpStatus.OK);
             } else {
-                return new ResponseEntity<>(new ApiResponse(false, "Event not found!"), HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
-            return new ResponseEntity<>(new ApiResponse(false, "Event not updated!"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     @GetMapping("/events")
     public ResponseEntity<List<EventSummaryDto>> getAllEventSummaries() {

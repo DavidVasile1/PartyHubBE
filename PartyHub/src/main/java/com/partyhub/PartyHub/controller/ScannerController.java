@@ -53,7 +53,6 @@ public class ScannerController {
             statistics = new Statistics();
 
         }
-
         if ("invite".equals(ticket.getType())) {
             statistics.setInvitationBasedAttendees(statistics.getInvitationBasedAttendees() + 1);
         } else {

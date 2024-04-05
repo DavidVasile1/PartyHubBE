@@ -45,7 +45,7 @@ public class PaymentController {
     @PostMapping("/charge")
     public ApiResponse chargeCard(@RequestBody ChargeRequest chargeRequest) {
         Event event = null;
-        float price = 0; // Inițializăm price în afara blocului try pentru a fi accesibil în finally
+        float price = 0;
         try {
             event = eventService.getEventById(chargeRequest.getEventId());
 
@@ -55,8 +55,7 @@ public class PaymentController {
 
             float discount = calculateDiscount(chargeRequest, event);
             price = (chargeRequest.getTickets() * event.getPrice()) * 100 - discount;
-            List<Ticket> tickets = generateTickets(chargeRequest, event); // Generăm biletele în avans
-
+            List<Ticket> tickets = generateTickets(chargeRequest, event);
             if (price > 0) {
                 Stripe.apiKey = apiKey;
                 ChargeCreateParams params = ChargeCreateParams.builder()
@@ -66,12 +65,12 @@ public class PaymentController {
                         .setSource(chargeRequest.getToken())
                         .build();
 
-                Charge.create(params); // Creăm încărcarea fără a stoca răspunsul într-o variabilă
+                Charge.create(params);
 
-                sendTicketsEmail(chargeRequest.getUserEmail(), tickets); // Trimitem biletele prin email
+                sendTicketsEmail(chargeRequest.getUserEmail(), tickets);
                 return new ApiResponse(true, "Plata a fost efectuată cu succes. Biletele au fost trimise.");
             } else {
-                sendTicketsEmail(chargeRequest.getUserEmail(), tickets); // Trimitem biletele pentru preț 0
+                sendTicketsEmail(chargeRequest.getUserEmail(), tickets);
                 return new ApiResponse(true, "Biletele au fost emise cu succes, fără plată necesară.");
             }
         } catch (StripeException e) {
@@ -82,7 +81,7 @@ public class PaymentController {
             return new ApiResponse(false, "A apărut o eroare: " + e.getMessage());
         } finally {
             if (event != null) {
-                float finalPrice = Math.max(0, price); // Asigurăm că price este mai mare sau egal cu 0
+                float finalPrice = Math.max(0, price);
                 updateEventStatistics(event, chargeRequest.getTickets(), finalPrice);
                 eventService.updateTicketsLeft(chargeRequest.getTickets(), event);
             }
@@ -193,7 +192,7 @@ public class PaymentController {
         Statistics statistics = statisticsService.getStatisticsByEventId(event.getId());
 
         statistics.setTicketsSold(statistics.getTicketsSold() + ticketsSold);
-        statistics.setMoneyEarned(statistics.getMoneyEarned().add(BigDecimal.valueOf(moneyEarned)));
+        statistics.setMoneyEarned(statistics.getMoneyEarned().add(BigDecimal.valueOf(moneyEarned).divide(BigDecimal.valueOf(100))));
         statisticsService.save(statistics);
     }
 }
