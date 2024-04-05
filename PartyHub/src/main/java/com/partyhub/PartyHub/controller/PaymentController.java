@@ -1,12 +1,8 @@
 package com.partyhub.PartyHub.controller;
 
 import com.partyhub.PartyHub.dto.ChargeRequest;
-import com.partyhub.PartyHub.dto.PaymentResponse;
 import com.partyhub.PartyHub.entities.*;
-import com.partyhub.PartyHub.exceptions.DiscountForNextTicketNotFoundException;
-import com.partyhub.PartyHub.exceptions.DiscountNotFoundException;
 import com.partyhub.PartyHub.exceptions.EventNotFoundException;
-import com.partyhub.PartyHub.exceptions.UserNotFoundException;
 import com.partyhub.PartyHub.service.*;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
@@ -14,27 +10,18 @@ import com.stripe.model.Charge;
 import com.stripe.param.ChargeCreateParams;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import java.io.ByteArrayOutputStream;
-import java.time.LocalDateTime;
 import java.util.Base64;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.Flow;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequiredArgsConstructor
@@ -57,46 +44,51 @@ public class PaymentController {
 
     @PostMapping("/charge")
     public ApiResponse chargeCard(@RequestBody ChargeRequest chargeRequest) {
+        Event event = null;
+        float price = 0; // Inițializăm price în afara blocului try pentru a fi accesibil în finally
         try {
-            Stripe.apiKey = apiKey;
+            event = eventService.getEventById(chargeRequest.getEventId());
 
-            Event event = eventService.getEventById(chargeRequest.getEventId());
-
-            if(eventService.isSoldOud(chargeRequest.getEventId())){
-                return new ApiResponse(false, "Tickets sold out!");
+            if (eventService.isSoldOut(chargeRequest.getEventId())) {
+                return new ApiResponse(false, "Biletele au fost vândute.");
             }
 
             float discount = calculateDiscount(chargeRequest, event);
-            float price = (chargeRequest.getTickets() * event.getPrice()) * 100 - discount;
+            price = (chargeRequest.getTickets() * event.getPrice()) * 100 - discount;
+            List<Ticket> tickets = generateTickets(chargeRequest, event); // Generăm biletele în avans
 
-            ChargeCreateParams params = ChargeCreateParams.builder()
-                    .setAmount((long) price)
-                    .setCurrency("RON")
-                    .setDescription("Payment for " + chargeRequest.getTickets() + " tickets to " + event.getName())
-                    .setSource(chargeRequest.getToken())
-                    .build();
+            if (price > 0) {
+                Stripe.apiKey = apiKey;
+                ChargeCreateParams params = ChargeCreateParams.builder()
+                        .setAmount((long) price)
+                        .setCurrency("RON")
+                        .setDescription("Plată pentru " + chargeRequest.getTickets() + " bilete la " + event.getName())
+                        .setSource(chargeRequest.getToken())
+                        .build();
 
-            Charge charge = Charge.create(params);
+                Charge.create(params); // Creăm încărcarea fără a stoca răspunsul într-o variabilă
 
-            updateEventStatistics(event, chargeRequest.getTickets(), price);
-
-            List<Ticket> tickets = generateTickets(chargeRequest, event);
-            sendTicketsEmail(chargeRequest.getUserEmail(), tickets);
-
-            eventService.updateTicketsLeft(chargeRequest.getTickets(), event);
-
-            PaymentResponse paymentResponse = new PaymentResponse(charge.getId(), charge.getAmount(), charge.getCurrency(), charge.getDescription());
-            return new ApiResponse(true, paymentResponse.toString());
+                sendTicketsEmail(chargeRequest.getUserEmail(), tickets); // Trimitem biletele prin email
+                return new ApiResponse(true, "Plata a fost efectuată cu succes. Biletele au fost trimise.");
+            } else {
+                sendTicketsEmail(chargeRequest.getUserEmail(), tickets); // Trimitem biletele pentru preț 0
+                return new ApiResponse(true, "Biletele au fost emise cu succes, fără plată necesară.");
+            }
         } catch (StripeException e) {
-            return new ApiResponse(false, "Stripe error: " + e.getMessage());
-        }catch (UserNotFoundException e) {
-            return new ApiResponse(false, "User not found!: " + e.getMessage());
-        }catch (EventNotFoundException e) {
-            return new ApiResponse(false, "Event not found!: " + e.getMessage());
+            return new ApiResponse(false, "Eroare Stripe: " + e.getMessage());
+        } catch (EventNotFoundException e) {
+            return new ApiResponse(false, "Evenimentul nu a fost găsit: " + e.getMessage());
         } catch (Exception e) {
-            return new ApiResponse(false, "An error occurred: " + e.getMessage());
+            return new ApiResponse(false, "A apărut o eroare: " + e.getMessage());
+        } finally {
+            if (event != null) {
+                float finalPrice = Math.max(0, price); // Asigurăm că price este mai mare sau egal cu 0
+                updateEventStatistics(event, chargeRequest.getTickets(), finalPrice);
+                eventService.updateTicketsLeft(chargeRequest.getTickets(), event);
+            }
         }
     }
+
 
 
     private float calculateDiscount(ChargeRequest chargeRequest, Event event) {
@@ -126,10 +118,10 @@ public class PaymentController {
         if (!chargeRequest.getReferralEmail().isEmpty()) {
             try {
                 User referrerUser = userService.findByEmail(chargeRequest.getReferralEmail());
-                discountForNextTicketService.addOrUpdateDiscountForUser(referrerUser, event, (int) (event.getDiscount()*chargeRequest.getTickets()));
+                discountForNextTicketService.addOrUpdateDiscountForUser(referrerUser, event, event.getDiscount()*chargeRequest.getTickets());
                 discount += event.getDiscount()*chargeRequest.getTickets()*event.getPrice();
                 DiscountForNextTicket discountForNextTicket = discountForNextTicketService.findDiscountForUserAndEvent(referrerUser.getUserDetails(),event);
-                int freeTicketsCount = (int) discountForNextTicket.getValue() / 100;
+                int freeTicketsCount = discountForNextTicket.getValue() / 100;
                 if (freeTicketsCount > 0) {
                     List<Ticket> freeTickets = new ArrayList<>();
                     for (int i = 0; i < freeTicketsCount; i++) {
@@ -138,7 +130,7 @@ public class PaymentController {
                     }
                     sendTicketsEmail(chargeRequest.getReferralEmail(), freeTickets);
                 }
-                System.out.println("the discount for next ticket of referal user is increased by " + (int) (event.getDiscount()*chargeRequest.getTickets()));
+                System.out.println("the discount for next ticket of referral user is increased by " + (event.getDiscount() * chargeRequest.getTickets()));
                 System.out.println("the discount using promocode is " + discount);
                 discountForNextTicket.setValue(discountForNextTicket.getValue()%100);
                 discountForNextTicketService.saveDiscountForNextTicket(discountForNextTicket);
@@ -168,7 +160,7 @@ public class PaymentController {
 
         for (Ticket ticket : tickets) {
             String qrCodeData = ticket.getId().toString();
-            String qrCodeImageBase64 = generateQRCodeImageBase64(qrCodeData, 200, 200); // Generate QR code
+            String qrCodeImageBase64 = generateQRCodeImageBase64(qrCodeData); // Generate QR code
 
             emailContent.append("<div style='margin-bottom: 20px;'>") // Added margin for better spacing
                     .append("<p>Your ticket QR code:</p>")
@@ -180,7 +172,9 @@ public class PaymentController {
         emailSenderService.sendEmail(userEmail, "Your Tickets", emailContent.toString());
     }
 
-    private String generateQRCodeImageBase64(String data, int width, int height) {
+    private String generateQRCodeImageBase64(String data) {
+        int width = 200;
+        int height = 200;
         try {
             QRCodeWriter qrCodeWriter = new QRCodeWriter();
             BitMatrix bitMatrix = qrCodeWriter.encode(data, BarcodeFormat.QR_CODE, width, height);
@@ -192,6 +186,7 @@ public class PaymentController {
             throw new RuntimeException("Failed to generate QR code", e);
         }
     }
+
 
 
     private void updateEventStatistics(Event event, int ticketsSold, float moneyEarned) {

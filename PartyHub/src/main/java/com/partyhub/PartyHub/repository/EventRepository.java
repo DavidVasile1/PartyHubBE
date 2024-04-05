@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface EventRepository extends JpaRepository<Event, UUID> {
     Optional<Event> findTopByDateAfterOrderByDateAsc(LocalDate date);
     List<Event> findByDateAfter(LocalDate date);
+    Optional<Event> findTopByCityAndDateAfterOrderByDateAsc(String city, LocalDate date);
+
 }

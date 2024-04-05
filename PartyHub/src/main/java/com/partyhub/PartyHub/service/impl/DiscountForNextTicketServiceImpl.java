@@ -8,7 +8,6 @@ import com.partyhub.PartyHub.exceptions.DiscountForNextTicketNotFoundException;
 import com.partyhub.PartyHub.repository.DiscountForNextTicketRepository;
 import com.partyhub.PartyHub.service.DiscountForNextTicketService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
 

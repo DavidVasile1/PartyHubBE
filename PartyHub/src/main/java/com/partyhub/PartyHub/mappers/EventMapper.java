@@ -3,11 +3,9 @@ package com.partyhub.PartyHub.mappers;
 import com.partyhub.PartyHub.dto.EventDto;
 import com.partyhub.PartyHub.dto.EventPhotoDto;
 import com.partyhub.PartyHub.entities.Event;
-import com.partyhub.PartyHub.entities.Ticket;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
+
 
 @Component
 public class EventMapper {

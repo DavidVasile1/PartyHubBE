@@ -3,7 +3,6 @@ package com.partyhub.PartyHub.service.impl;
 import com.partyhub.PartyHub.dto.ProfileDto;
 import com.partyhub.PartyHub.entities.User;
 import com.partyhub.PartyHub.entities.UserDetails;
-import com.partyhub.PartyHub.exceptions.UserNotFoundException;
 import com.partyhub.PartyHub.service.ProfileService;
 import com.partyhub.PartyHub.service.UserService;
 import com.partyhub.PartyHub.service.UserDetailsService;
@@ -12,7 +11,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

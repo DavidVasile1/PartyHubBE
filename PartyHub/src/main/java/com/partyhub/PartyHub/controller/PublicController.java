@@ -4,7 +4,6 @@ import com.partyhub.PartyHub.dto.EventDto;
 import com.partyhub.PartyHub.dto.EventPhotoDto;
 import com.partyhub.PartyHub.dto.EventTicketInfoDTO;
 import com.partyhub.PartyHub.entities.Discount;
-import com.partyhub.PartyHub.entities.DiscountForNextTicket;
 import com.partyhub.PartyHub.entities.Event;
 import com.partyhub.PartyHub.entities.User;
 import com.partyhub.PartyHub.exceptions.DiscountForNextTicketNotFoundException;
@@ -14,6 +13,7 @@ import com.partyhub.PartyHub.service.DiscountForNextTicketService;
 import com.partyhub.PartyHub.service.DiscountService;
 import com.partyhub.PartyHub.service.EventService;
 import com.partyhub.PartyHub.service.UserService;
+import com.partyhub.PartyHub.util.ValidationUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,7 +21,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -58,7 +57,7 @@ public class PublicController {
     @GetMapping("/event")
     public ResponseEntity<EventPhotoDto> getNearestEventPhoto() {
         try {
-            Event nearestEvent = eventService.getNearestEvent();
+            Event nearestEvent = eventService.getNearestEvent(Optional.empty());
             EventPhotoDto eventPhotoDto = eventMapper.eventToEventPhotoDto(nearestEvent);
             if (eventPhotoDto != null) {
                 return new ResponseEntity<>(eventPhotoDto, HttpStatus.OK);
@@ -76,7 +75,7 @@ public class PublicController {
     public ResponseEntity<ApiResponse> checkPromoCodeOrDiscount(@RequestParam String code) {
         try {
             if (code.length() == 9) {
-                if (isValidPromoCode(code)) {
+                if (ValidationUtils.isValidPromoCode(code)){
                     User user = userService.findByPromoCode(code);
 
                         String email = user.getEmail();
@@ -97,19 +96,7 @@ public class PublicController {
         return new ResponseEntity<>(new ApiResponse(false, "Not a valid form"), HttpStatus.NOT_FOUND);
     }
 
-    private boolean isValidPromoCode(String promoCode) {
-        if (promoCode == null || promoCode.length() != 9) {
-            return false;
-        }
 
-        for (int i = 0; i < promoCode.length(); i++) {
-            char ch = promoCode.charAt(i);
-            if (!Character.isLowerCase(ch) && !Character.isDigit(ch)) {
-                return false;
-            }
-        }
-        return true;
-    }
     @GetMapping("/event-price/{id}")
     public ResponseEntity<BigDecimal> getEventPrice(@PathVariable UUID id) {
         try {

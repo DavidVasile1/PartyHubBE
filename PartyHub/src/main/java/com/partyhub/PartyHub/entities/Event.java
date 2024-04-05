@@ -32,7 +32,7 @@ public class Event {
     private LocalDate date;
     private String details;
     private float price;
-    private float discount;
+    private int discount;
     private int ticketsNumber;
     private int ticketsLeft = this.ticketsNumber;
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)

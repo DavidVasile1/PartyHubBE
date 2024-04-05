@@ -41,7 +41,7 @@ public class EventDto {
 
     @Min(value = 0, message = "The discount cannot be negative")
     @Max(value = 100, message = "The discount cannot be greater than 100")
-    private float discount;
+    private int discount;
 
     @Positive(message = "The number of tickets must be positive")
     private int ticketsNumber;
