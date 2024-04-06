@@ -1,5 +1,4 @@
 package com.partyhub.PartyHub.util;
-
 public class ValidationUtils {
     public static boolean isValidPromoCode(String promoCode) {
         if (promoCode == null || promoCode.length() != 9) {

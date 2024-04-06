@@ -8,6 +8,17 @@ import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Charge;
 import com.stripe.param.ChargeCreateParams;
+import jakarta.activation.DataHandler;
+import jakarta.activation.DataSource;
+import jakarta.mail.Message;
+import jakarta.mail.PasswordAuthentication;
+import jakarta.mail.Session;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
+import jakarta.mail.util.ByteArrayDataSource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
@@ -16,12 +27,8 @@ import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import java.io.ByteArrayOutputStream;
-import java.util.Base64;
-
+import java.util.*;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -134,14 +141,13 @@ public class PaymentController {
                 discountForNextTicket.setValue(discountForNextTicket.getValue()%100);
                 discountForNextTicketService.saveDiscountForNextTicket(discountForNextTicket);
 
-            } catch (RuntimeException e) {
+            } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
         }
 
         return discount;
     }
-
 
 
     private List<Ticket> generateTickets(ChargeRequest chargeRequest, Event event) {
@@ -155,36 +161,74 @@ public class PaymentController {
     }
 
     private void sendTicketsEmail(String userEmail, List<Ticket> tickets) {
-        StringBuilder emailContent = new StringBuilder("<h1>Your Tickets</h1>");
-
-        for (Ticket ticket : tickets) {
-            String qrCodeData = ticket.getId().toString();
-            String qrCodeImageBase64 = generateQRCodeImageBase64(qrCodeData); // Generate QR code
-
-            emailContent.append("<div style='margin-bottom: 20px;'>") // Added margin for better spacing
-                    .append("<p>Your ticket QR code:</p>")
-                    .append("<img src=\"data:image/png;base64,")
-                    .append(qrCodeImageBase64)
-                    .append("\" alt='Ticket QR Code' style='border: 1px solid #ddd; border-radius: 4px; padding: 5px; width: 150px;' /></div>");
-        }
-
-        emailSenderService.sendEmail(userEmail, "Your Tickets", emailContent.toString());
-    }
-
-    private String generateQRCodeImageBase64(String data) {
-        int width = 200;
-        int height = 200;
         try {
-            QRCodeWriter qrCodeWriter = new QRCodeWriter();
-            BitMatrix bitMatrix = qrCodeWriter.encode(data, BarcodeFormat.QR_CODE, width, height);
-            ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
-            MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
-            byte[] pngData = pngOutputStream.toByteArray();
-            return Base64.getEncoder().encodeToString(pngData);
+            // Email configuration properties
+            String host = "smtp.gmail.com";
+            int port = 587;
+            String username = "party.hub.00@gmail.com"; // Your email
+            String password = "aqrfoyixtzdsiazo"; // Your password or app-specific password
+
+            Properties props = new Properties();
+            props.put("mail.smtp.auth", "true");
+            props.put("mail.smtp.starttls.enable", "true");
+            props.put("mail.smtp.host", host);
+            props.put("mail.smtp.port", port);
+
+            // Create a mail session
+            Session session = Session.getInstance(props, new jakarta.mail.Authenticator(){
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(username, password);
+                }
+            });
+
+            // Construct the email message
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(username));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(userEmail));
+            message.setSubject("Your Tickets");
+
+            // Create the multipart content
+            MimeMultipart multipart = new MimeMultipart();
+
+            // Add QR code images to the email
+            for (Ticket ticket : tickets) {
+                byte[] qrCodeImage = generateQRCodeImage(ticket.getId().toString());
+
+                // Create the image part
+                MimeBodyPart imagePart = new MimeBodyPart();
+                DataSource fds = new ByteArrayDataSource(qrCodeImage, "image/png");
+                imagePart.setDataHandler(new DataHandler(fds));
+                imagePart.setHeader("Content-ID", "<qrCodeImage>");
+
+                // Add image part to multipart
+                multipart.addBodyPart(imagePart);
+            }
+
+            // Create the HTML content
+            StringBuilder emailContentBuilder = new StringBuilder("<html><body>");
+            for (int i = 0; i < tickets.size(); i++) {
+                emailContentBuilder.append("<p>QR Code for Ticket ").append(i + 1).append("</p>");
+                emailContentBuilder.append("<img src='cid:qrCodeImage' alt='QR Code'><br><br>");
+            }
+            emailContentBuilder.append("</body></html>");
+
+            // Create the message part
+            MimeBodyPart messageBodyPart = new MimeBodyPart();
+            messageBodyPart.setContent(emailContentBuilder.toString(), "text/html");
+
+            // Add message part to multipart
+            multipart.addBodyPart(messageBodyPart);
+
+            // Set multipart as content of message
+            message.setContent(multipart);
+
+            // Send the email
+            Transport.send(message);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to generate QR code", e);
+            e.printStackTrace();
         }
     }
+
 
 
 
@@ -194,5 +238,15 @@ public class PaymentController {
         statistics.setTicketsSold(statistics.getTicketsSold() + ticketsSold);
         statistics.setMoneyEarned(statistics.getMoneyEarned().add(BigDecimal.valueOf(moneyEarned).divide(BigDecimal.valueOf(100))));
         statisticsService.save(statistics);
+    }
+
+    private byte[] generateQRCodeImage(String text) throws Exception {
+        QRCodeWriter qrCodeWriter = new QRCodeWriter();
+        BitMatrix bitMatrix = qrCodeWriter.encode(text, BarcodeFormat.QR_CODE, 350, 350);
+        try (ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream()) {
+            MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
+            return pngOutputStream.toByteArray();
+        }
+
     }
 }

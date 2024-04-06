@@ -64,7 +64,7 @@ public class UserController {
             String email = authentication.getName();
             User user = userService.findByEmail(email);
 
-            if (ValidationUtils.isValidPromoCode(newPromoCode)) {
+            if (!ValidationUtils.isValidPromoCode(newPromoCode)) {
                 return new ResponseEntity<>(new ApiResponse(false, "Invalid promo code format"), HttpStatus.BAD_REQUEST);
             }
 

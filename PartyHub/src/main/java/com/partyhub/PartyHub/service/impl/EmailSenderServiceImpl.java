@@ -1,9 +1,14 @@
 package com.partyhub.PartyHub.service.impl;
 
 import com.partyhub.PartyHub.service.EmailSenderService;
+import jakarta.activation.DataHandler;
+import jakarta.activation.DataSource;
+import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
-import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.*;
+import jakarta.mail.util.ByteArrayDataSource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -45,4 +50,5 @@ public class EmailSenderServiceImpl implements EmailSenderService {
             throw new RuntimeException("Failed to send email", e);
         }
     }
+
 }
