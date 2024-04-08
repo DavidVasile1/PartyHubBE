@@ -38,7 +38,6 @@ public class PaymentController {
 
     private final EventService eventService;
     private final TicketService ticketService;
-    private final EmailSenderService emailSenderService;
     private final DiscountService discountService;
     private final UserService userService;
     private final StatisticsService statisticsService;
@@ -175,7 +174,7 @@ public class PaymentController {
             props.put("mail.smtp.port", port);
 
             // Create a mail session
-            Session session = Session.getInstance(props, new jakarta.mail.Authenticator(){
+            Session session = Session.getInstance(props, new jakarta.mail.Authenticator() {
                 protected PasswordAuthentication getPasswordAuthentication() {
                     return new PasswordAuthentication(username, password);
                 }
@@ -190,25 +189,28 @@ public class PaymentController {
             // Create the multipart content
             MimeMultipart multipart = new MimeMultipart();
 
-            // Add QR code images to the email
-            for (Ticket ticket : tickets) {
+            // Generate and add a QR code for each ticket
+            for (int i = 0; i < tickets.size(); i++) {
+                Ticket ticket = tickets.get(i);
                 byte[] qrCodeImage = generateQRCodeImage(ticket.getId().toString());
 
-                // Create the image part
+                // Create the image part with a unique Content-ID for each ticket
                 MimeBodyPart imagePart = new MimeBodyPart();
                 DataSource fds = new ByteArrayDataSource(qrCodeImage, "image/png");
                 imagePart.setDataHandler(new DataHandler(fds));
-                imagePart.setHeader("Content-ID", "<qrCodeImage>");
+                // Ensure each Content-ID is unique, e.g., by appending the ticket index
+                imagePart.setHeader("Content-ID", "<qrCodeImage" + i + ">");
 
                 // Add image part to multipart
                 multipart.addBodyPart(imagePart);
             }
 
-            // Create the HTML content
+            // Create the HTML content with placeholders for each unique QR code
             StringBuilder emailContentBuilder = new StringBuilder("<html><body>");
             for (int i = 0; i < tickets.size(); i++) {
                 emailContentBuilder.append("<p>QR Code for Ticket ").append(i + 1).append("</p>");
-                emailContentBuilder.append("<img src='cid:qrCodeImage' alt='QR Code'><br><br>");
+                // Reference the unique Content-ID for each QR code image
+                emailContentBuilder.append("<img src='cid:qrCodeImage").append(i).append("' alt='QR Code'><br><br>");
             }
             emailContentBuilder.append("</body></html>");
 
