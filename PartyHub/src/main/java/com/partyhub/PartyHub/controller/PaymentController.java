@@ -38,7 +38,6 @@ public class PaymentController {
 
     private final EventService eventService;
     private final TicketService ticketService;
-    private final EmailSenderService emailSenderService;
     private final DiscountService discountService;
     private final UserService userService;
     private final StatisticsService statisticsService;
@@ -175,7 +174,7 @@ public class PaymentController {
             props.put("mail.smtp.port", port);
 
             // Create a mail session
-            Session session = Session.getInstance(props, new jakarta.mail.Authenticator(){
+            Session session = Session.getInstance(props, new jakarta.mail.Authenticator() {
                 protected PasswordAuthentication getPasswordAuthentication() {
                     return new PasswordAuthentication(username, password);
                 }
@@ -190,12 +189,12 @@ public class PaymentController {
             // Create the multipart content
             MimeMultipart multipart = new MimeMultipart();
 
-            // Add QR code images to the email
+            // Generate and add a QR code for each ticket
             for (int i = 0; i < tickets.size(); i++) {
                 Ticket ticket = tickets.get(i);
                 byte[] qrCodeImage = generateQRCodeImage(ticket.getId().toString());
 
-                // Create the image part
+                // Create the image part with a unique Content-ID for each ticket
                 MimeBodyPart imagePart = new MimeBodyPart();
                 DataSource fds = new ByteArrayDataSource(qrCodeImage, "image/png");
                 imagePart.setDataHandler(new DataHandler(fds));
@@ -207,8 +206,6 @@ public class PaymentController {
 
             // Create the HTML content
             StringBuilder emailContentBuilder = new StringBuilder("<html><body>");
-
-//            emailContentBuilder.append("<h1>").append(event.getName()).append("</h1>");//aicea vine posteru
             for (int i = 0; i < tickets.size(); i++) {
                 emailContentBuilder.append("<h1>").append(event.getName()).append("</h1>");
                 emailContentBuilder.append("<p>").append(event.getLocation()).append("</p>");
@@ -235,7 +232,7 @@ public class PaymentController {
             // Send the email
             Transport.send(message);
         } catch (Exception e) {
-//            e.printStackTrace();
+            e.printStackTrace();
         }
     }
 
