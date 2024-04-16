@@ -15,6 +15,7 @@ import com.partyhub.PartyHub.service.*;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +34,9 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping("/api/auth")
 public class AuthController {
+
+    @Value("server.url")
+    String serverUrl;
 
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
@@ -87,7 +91,6 @@ public class AuthController {
     @GetMapping("reset-password/{email}")
     public ResponseEntity<ApiResponse> sendResetPasswordEmail(@PathVariable String email) {
         try {
-            String clientUrl = "http://localhost:4200";
 
             User user = userService.findByEmail(email);
             user.setVerificationToken(UUID.randomUUID());
@@ -97,7 +100,7 @@ public class AuthController {
                     + "<h1>Password Reset</h1>"
                     + "<p>An email has been sent to you regarding resetting your password. "
                     + "Please click the following button to proceed:</p>"
-                    + "<a href=\"" + clientUrl + "/reset-password/" + user.getVerificationToken() + "\">"
+                    + "<a href=\"" + this.serverUrl + "/reset-password/" + user.getVerificationToken() + "\">"
                     + "<button style=\"background-color: red; color: white; padding: 15px 32px; text-align: center; border-radius: 15px; border: none;"
                     + "text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer;\">Reset Password</button></a>"
                     + "<p>If you did not request to reset your password, please ignore this email.</p>"
@@ -151,7 +154,7 @@ public class AuthController {
                     + "<h1>Account Activation</h1>"
                     + "<p>An email has been sent to you for activating your account. "
                     + "Please click the following button to proceed:</p>"
-                    + "<a href=\"" + "http://localhost:4200" + "/verify/" + user.getVerificationToken() + "\">"
+                    + "<a href=\"" + this.serverUrl + "/verify/" + user.getVerificationToken() + "\">"
                     + "<button style=\"background-color: red; color: white; padding: 15px 32px; text-align: center; border-radius: 15px; border: none;"
                     + "text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer;\">Activate account</button></a>"
                     + "<p>If you did not register for an account, please ignore this email.</p>"

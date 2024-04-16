@@ -81,7 +81,25 @@ label {
     font-size: 18px;
 }
 
+.nav{
+    width: 100vw;
+    height: 95px;
+    background-color: black;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+}
 
+.footer{
+    width: 100vw;
+    height: 70px;
+    background: black;
+    position: fixed;
+    bottom: 0;
+}
 
-
-
+.text{
+    color: slategrey;
+    font-size: 22px;
+    font-weight:700 ;
+}

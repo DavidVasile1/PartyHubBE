@@ -1,82 +1,79 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Extract the token from the URL
-    const urlPath = window.location.pathname;
-    const token = urlPath.substring(urlPath.lastIndexOf('/') + 1);
+// Function to validate password length
+function isPasswordValid(password) {
+    return password.length >= 8;
+}
 
-    const resetPasswordForm = document.getElementById('resetPasswordForm');
+// Function to validate password match
+function doPasswordsMatch(password, confirmPassword) {
+    return password === confirmPassword;
+}
+
+// Function to update UI based on validation results
+function updateValidationUI(passwordValid, passwordsMatch) {
     const passwordInput = document.getElementById('password');
     const confirmPasswordInput = document.getElementById('confirm-password');
-    const submitButton = document.getElementById('submitBtn');
-    const successMessage = document.getElementById('successMessage');
     const errorMessage = document.getElementById('errorMessage');
-    const errorText = document.createElement('div'); // Create a div for error messages
 
-    // Initialize errorText properties
-    errorText.style.color = 'red';
-    errorText.style.display = 'none'; // Hide initially
-    resetPasswordForm.insertBefore(errorText, submitButton); // Insert before the submit button
+    // Reset borders and error message
+    passwordInput.style.border = '';
+    confirmPasswordInput.style.border = '';
+    errorMessage.style.display = 'none';
 
-    // Function to reset styles and hide error messages
-    function resetFormStyles() {
-        passwordInput.style.border = '';
-        confirmPasswordInput.style.border = '';
-        errorText.style.display = 'none'; // Hide error text
-        successMessage.style.display = 'none';
-        errorMessage.style.display = 'none';
+    // Set borders and display error message if necessary
+    if (!passwordValid) {
+        passwordInput.style.border = '1px solid red';
     }
-
-    // Function to indicate error on input fields
-    function indicateInputError(inputFields, message) {
-        inputFields.forEach(field => {
-            field.style.border = '2px solid red';
-        });
-        errorText.textContent = message; // Set the error message
-        errorText.style.display = 'block'; // Show error text
+    if (!passwordsMatch) {
+        confirmPasswordInput.style.border = '1px solid red';
+        errorMessage.style.display = 'block';
     }
+}
 
-    resetPasswordForm.addEventListener('submit', function(event) {
-        event.preventDefault(); // Prevents form submission
+// Function to handle form submission
+function handleFormSubmission(event) {
+    event.preventDefault(); // Prevent form submission by default
 
-        const password = passwordInput.value;
-        const confirmPassword = confirmPasswordInput.value;
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
 
-        resetFormStyles(); // Reset styles on new submission
+    // Validate password length and match
+    const passwordValid = isPasswordValid(password);
+    const passwordsMatch = doPasswordsMatch(password, confirmPassword);
 
-        // Validate password length
-        if (password.length < 8) {
-            indicateInputError([passwordInput, confirmPasswordInput], 'Password must be at least 8 characters long.');
-            return; // Stop here if validation fails
-        }
+    // Update UI based on validation results
+    updateValidationUI(passwordValid, passwordsMatch);
 
-        // Check if the entered passwords match
-        if (password !== confirmPassword) {
-            indicateInputError([passwordInput, confirmPasswordInput], 'The passwords do not match.');
-            return; // Stop here if validation fails
-        }
+    // If both password is valid and passwords match, proceed with submission
+    if (passwordValid && passwordsMatch) {
+        const token = window.location.pathname.split('/').pop();
+        const newPassword = password; // You can also get newPassword from a different source if needed
+        const xhr = new XMLHttpRequest();
+        const serverUrl1 = document.getElementById('serverUrl').value;
+        const str = serverUrl1.value + token;
+        console.log(str)
+        xhr.open('POST', str );
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onload = function() {
+            const response = JSON.parse(xhr.responseText);
+            if (xhr.status === 200 && response.success) {
+                document.getElementById('successMessage').style.display = 'block';
+                document.getElementById('saveButton').disabled = true;
+            } else {
+                console.error(response.message);
+            }
+        };
+        xhr.send(JSON.stringify({ newPassword: newPassword }));
+    }
+}
 
-        // Perform the API call for password reset
-        fetch(`/reset-password/${token}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ newPassword: password }),
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Operation successful
-                    successMessage.textContent = data.message;
-                    successMessage.style.display = 'block';
-                } else {
-                    // Handle specific API error responses
-                    errorMessage.textContent = data.message;
-                    errorMessage.style.display = 'block';
-                }
-            })
-            .catch(error => {
-                errorMessage.textContent = 'An error occurred while resetting the password. Please try again.';
-                errorMessage.style.display = 'block';
-            });
-    });
+// Add input event listeners to password fields
+document.getElementById('password').addEventListener('input', function() {
+    updateValidationUI(isPasswordValid(this.value), doPasswordsMatch(this.value, document.getElementById('confirm-password').value));
 });
+
+document.getElementById('confirm-password').addEventListener('input', function() {
+    updateValidationUI(isPasswordValid(document.getElementById('password').value), doPasswordsMatch(document.getElementById('password').value, this.value));
+});
+
+// Add submit event listener to form
+document.getElementById('resetPasswordForm').addEventListener('submit', handleFormSubmission);

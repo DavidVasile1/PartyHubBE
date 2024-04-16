@@ -95,8 +95,11 @@ public class UserController {
     }
 
     @GetMapping("/tickets")
-    public ResponseEntity<List<TicketDTO>> getTicketsByEmail(@RequestParam String email) {
+    public ResponseEntity<List<TicketDTO>> getTicketsByEmail() {
         try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+
             List<TicketDTO> tickets = ticketService.getAllTicketsByEmail(email);
             if (tickets != null && !tickets.isEmpty()) {
                 return new ResponseEntity<>(tickets, HttpStatus.OK);

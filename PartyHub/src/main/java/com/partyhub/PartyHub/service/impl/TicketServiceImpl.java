@@ -58,7 +58,6 @@ public class TicketServiceImpl implements TicketService {
     }
 
     private TicketDTO mapToDto(Ticket ticket) {
-        // Assuming Event is eagerly fetched with the ticket or otherwise efficiently loaded
         Event event = ticket.getEvent();
 
         return new TicketDTO(

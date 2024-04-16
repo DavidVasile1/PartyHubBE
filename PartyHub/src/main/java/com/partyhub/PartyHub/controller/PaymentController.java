@@ -74,10 +74,10 @@ public class PaymentController {
 
                 Charge.create(params);
 
-                sendTicketsEmail(chargeRequest.getUserEmail(), tickets);
+                sendTicketsEmail(chargeRequest.getUserEmail(), tickets, event);
                 return new ApiResponse(true, "Plata a fost efectuată cu succes. Biletele au fost trimise.");
             } else {
-                sendTicketsEmail(chargeRequest.getUserEmail(), tickets);
+                sendTicketsEmail(chargeRequest.getUserEmail(), tickets, event);
                 return new ApiResponse(true, "Biletele au fost emise cu succes, fără plată necesară.");
             }
         } catch (StripeException e) {
@@ -134,7 +134,7 @@ public class PaymentController {
                         Ticket freeTicket = new Ticket(UUID.randomUUID(), null, "FREE_TICKET", chargeRequest.getReferralEmail(), event);
                         freeTickets.add(ticketService.saveTicket(freeTicket));
                     }
-                    sendTicketsEmail(chargeRequest.getReferralEmail(), freeTickets);
+                    sendTicketsEmail(chargeRequest.getReferralEmail(), freeTickets, event);
                 }
                 System.out.println("the discount for next ticket of referral user is increased by " + (event.getDiscount() * chargeRequest.getTickets()));
                 System.out.println("the discount using promocode is " + discount);
@@ -160,7 +160,7 @@ public class PaymentController {
         return tickets;
     }
 
-    private void sendTicketsEmail(String userEmail, List<Ticket> tickets) {
+    private void sendTicketsEmail(String userEmail, List<Ticket> tickets, Event event) {
         try {
             // Email configuration properties
             String host = "smtp.gmail.com";
@@ -191,14 +191,15 @@ public class PaymentController {
             MimeMultipart multipart = new MimeMultipart();
 
             // Add QR code images to the email
-            for (Ticket ticket : tickets) {
+            for (int i = 0; i < tickets.size(); i++) {
+                Ticket ticket = tickets.get(i);
                 byte[] qrCodeImage = generateQRCodeImage(ticket.getId().toString());
 
                 // Create the image part
                 MimeBodyPart imagePart = new MimeBodyPart();
                 DataSource fds = new ByteArrayDataSource(qrCodeImage, "image/png");
                 imagePart.setDataHandler(new DataHandler(fds));
-                imagePart.setHeader("Content-ID", "<qrCodeImage>");
+                imagePart.setHeader("Content-ID", "<qrCodeImage" + i + ">");
 
                 // Add image part to multipart
                 multipart.addBodyPart(imagePart);
@@ -206,9 +207,18 @@ public class PaymentController {
 
             // Create the HTML content
             StringBuilder emailContentBuilder = new StringBuilder("<html><body>");
+
+//            emailContentBuilder.append("<h1>").append(event.getName()).append("</h1>");//aicea vine posteru
             for (int i = 0; i < tickets.size(); i++) {
-                emailContentBuilder.append("<p>QR Code for Ticket ").append(i + 1).append("</p>");
-                emailContentBuilder.append("<img src='cid:qrCodeImage' alt='QR Code'><br><br>");
+                emailContentBuilder.append("<h1>").append(event.getName()).append("</h1>");
+                emailContentBuilder.append("<p>").append(event.getLocation()).append("</p>");
+                emailContentBuilder.append("<p>").append(event.getCity()).append("</p>");
+                emailContentBuilder.append("<p>Unique id:</p>");
+                emailContentBuilder.append("<p>").append(tickets.get(i)).append("</p>");
+                emailContentBuilder.append("<p>Access between:</p>");
+                emailContentBuilder.append("<p>").append(event.getDate().toString()).append(" 22:00").append(event.getDate().plusDays(1).toString()).append(" 05:00").append("</p>");
+                emailContentBuilder.append("<p>Valid for only one person</p>");
+                emailContentBuilder.append("<img src='cid:qrCodeImage").append(i).append("' alt='QR Code'><br><br>");
             }
             emailContentBuilder.append("</body></html>");
 
@@ -225,7 +235,7 @@ public class PaymentController {
             // Send the email
             Transport.send(message);
         } catch (Exception e) {
-            e.printStackTrace();
+//            e.printStackTrace();
         }
     }
 
