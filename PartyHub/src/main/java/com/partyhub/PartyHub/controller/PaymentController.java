@@ -29,6 +29,7 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 
 @RestController
 @RequiredArgsConstructor
@@ -73,10 +74,10 @@ public class PaymentController {
 
                 Charge.create(params);
 
-                sendTicketsEmail(chargeRequest.getUserEmail(), tickets, event);
+                sendTicketsEmail(chargeRequest.getUserEmail(), tickets);
                 return new ApiResponse(true, "Plata a fost efectuată cu succes. Biletele au fost trimise.");
             } else {
-                sendTicketsEmail(chargeRequest.getUserEmail(), tickets, event);
+                sendTicketsEmail(chargeRequest.getUserEmail(), tickets);
                 return new ApiResponse(true, "Biletele au fost emise cu succes, fără plată necesară.");
             }
         } catch (StripeException e) {
@@ -133,7 +134,7 @@ public class PaymentController {
                         Ticket freeTicket = new Ticket(UUID.randomUUID(), null, "FREE_TICKET", chargeRequest.getReferralEmail(), event);
                         freeTickets.add(ticketService.saveTicket(freeTicket));
                     }
-                    sendTicketsEmail(chargeRequest.getReferralEmail(), freeTickets, event);
+                    sendTicketsEmail(chargeRequest.getReferralEmail(), freeTickets);
                 }
                 System.out.println("the discount for next ticket of referral user is increased by " + (event.getDiscount() * chargeRequest.getTickets()));
                 System.out.println("the discount using promocode is " + discount);
@@ -159,7 +160,7 @@ public class PaymentController {
         return tickets;
     }
 
-    private void sendTicketsEmail(String userEmail, List<Ticket> tickets, Event event) {
+    private void sendTicketsEmail(String userEmail, List<Ticket> tickets) {
         try {
             // Email configuration properties
             String host = "smtp.gmail.com";
@@ -198,24 +199,27 @@ public class PaymentController {
                 MimeBodyPart imagePart = new MimeBodyPart();
                 DataSource fds = new ByteArrayDataSource(qrCodeImage, "image/png");
                 imagePart.setDataHandler(new DataHandler(fds));
+                // Ensure each Content-ID is unique, e.g., by appending the ticket index
                 imagePart.setHeader("Content-ID", "<qrCodeImage" + i + ">");
 
                 // Add image part to multipart
                 multipart.addBodyPart(imagePart);
             }
 
-            // Create the HTML content
+            // Create the HTML content with placeholders for each unique QR code
             StringBuilder emailContentBuilder = new StringBuilder("<html><body>");
+            Event event = tickets.get(0).getEvent();
+
             for (int i = 0; i < tickets.size(); i++) {
                 emailContentBuilder.append("<h1>").append(event.getName()).append("</h1>");
-                emailContentBuilder.append("<p>").append(event.getLocation()).append("</p>");
-                emailContentBuilder.append("<p>").append(event.getCity()).append("</p>");
-                emailContentBuilder.append("<p>Unique id:</p>");
-                emailContentBuilder.append("<p>").append(tickets.get(i)).append("</p>");
-                emailContentBuilder.append("<p>Access between:</p>");
-                emailContentBuilder.append("<p>").append(event.getDate().toString()).append(" 22:00").append(event.getDate().plusDays(1).toString()).append(" 05:00").append("</p>");
+                emailContentBuilder.append("<p style=\"font-weight: 500;\">").append(event.getLocation()).append(" ").append(event.getCity()).append("</p>");
+                emailContentBuilder.append("<p style=\"font-weight: 500;\">Ticket serial number:</p>");
+                emailContentBuilder.append("<p>").append(tickets.get(i).getId().toString()).append("</p>");
+                emailContentBuilder.append("<p style=\"font-weight: 500;\">Access between:</p>");
+                emailContentBuilder.append("<p>").append(formatDate(event.getDate().toString())).append(" 22:00 and ").append(formatDate(event.getDate().toString())).append(" 05:00").append("</p>");
                 emailContentBuilder.append("<p>Valid for only one person</p>");
-                emailContentBuilder.append("<img src='cid:qrCodeImage").append(i).append("' alt='QR Code'><br><br>");
+                emailContentBuilder.append("<img src='cid:qrCodeImage").append(i).append("' alt='QR Code'>");
+                emailContentBuilder.append("<p>Organizator: Mamara Catalin Daniel, 49699573</p><br><br>");
             }
             emailContentBuilder.append("</body></html>");
 
@@ -256,4 +260,14 @@ public class PaymentController {
         }
 
     }
+
+    private String formatDate(String dateString){
+       String[] dateParts = dateString.split("-");
+
+        String day = dateParts[2];
+        String month = dateParts[1];
+
+        return day + "." + month;
+    }
+
 }
