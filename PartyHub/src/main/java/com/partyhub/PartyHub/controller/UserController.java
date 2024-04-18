@@ -101,6 +101,7 @@ public class UserController {
             String email = authentication.getName();
 
             List<TicketDTO> tickets = ticketService.getAllTicketsByEmail(email);
+            System.out.println(tickets);
             if (tickets != null && !tickets.isEmpty()) {
                 return new ResponseEntity<>(tickets, HttpStatus.OK);
             } else {

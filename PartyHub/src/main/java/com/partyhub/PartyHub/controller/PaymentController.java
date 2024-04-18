@@ -74,10 +74,10 @@ public class PaymentController {
 
                 Charge.create(params);
 
-                sendTicketsEmail(chargeRequest.getUserEmail(), tickets,event.getSecondaryBanner());
+                sendTicketsEmail(chargeRequest.getUserEmail(), tickets);
                 return new ApiResponse(true, "Plata a fost efectuată cu succes. Biletele au fost trimise.");
             } else {
-                sendTicketsEmail(chargeRequest.getUserEmail(), tickets,event.getSecondaryBanner());
+                sendTicketsEmail(chargeRequest.getUserEmail(), tickets);
                 return new ApiResponse(true, "Biletele au fost emise cu succes, fără plată necesară.");
             }
         } catch (StripeException e) {
@@ -134,7 +134,7 @@ public class PaymentController {
                         Ticket freeTicket = new Ticket(UUID.randomUUID(), null, "FREE_TICKET", chargeRequest.getReferralEmail(), event);
                         freeTickets.add(ticketService.saveTicket(freeTicket));
                     }
-                    sendTicketsEmail(chargeRequest.getReferralEmail(), freeTickets,event.getSecondaryBanner());
+                    sendTicketsEmail(chargeRequest.getReferralEmail(), freeTickets);
                 }
                 System.out.println("the discount for next ticket of referral user is increased by " + (event.getDiscount() * chargeRequest.getTickets()));
                 System.out.println("the discount using promocode is " + discount);
@@ -160,7 +160,7 @@ public class PaymentController {
         return tickets;
     }
 
-    private void sendTicketsEmail(String userEmail, List<Ticket> tickets, byte[] secondaryBannerImage) {
+    private void sendTicketsEmail(String userEmail, List<Ticket> tickets) {
         try {
             // Email configuration properties
             String host = "smtp.gmail.com";
@@ -188,68 +188,57 @@ public class PaymentController {
             message.setSubject("Your Tickets");
 
             // Create the multipart content
-            MimeMultipart multipart = new MimeMultipart("related");
-
-            // Add the secondary banner part
-            MimeBodyPart bannerPart = new MimeBodyPart();
-            DataSource fdsBanner = new ByteArrayDataSource(secondaryBannerImage, "image/png");
-            bannerPart.setDataHandler(new DataHandler(fdsBanner));
-            bannerPart.setHeader("Content-ID", "<secondaryBanner>");
-            multipart.addBodyPart(bannerPart);
+            MimeMultipart multipart = new MimeMultipart();
 
             // Generate and add a QR code for each ticket
-            QRCodeWriter qrCodeWriter = new QRCodeWriter();
             for (int i = 0; i < tickets.size(); i++) {
                 Ticket ticket = tickets.get(i);
-                BitMatrix bitMatrix = qrCodeWriter.encode(ticket.getId().toString(), BarcodeFormat.QR_CODE, 350, 350);
-                ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
-                MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
-                byte[] qrCodeImage = pngOutputStream.toByteArray();
+                byte[] qrCodeImage = generateQRCodeImage(ticket.getId().toString());
 
                 // Create the image part with a unique Content-ID for each ticket
-                MimeBodyPart qrPart = new MimeBodyPart();
-                DataSource fdsQR = new ByteArrayDataSource(qrCodeImage, "image/png");
-                qrPart.setDataHandler(new DataHandler(fdsQR));
-                qrPart.setHeader("Content-ID", "<qrCodeImage" + i + ">");
-                multipart.addBodyPart(qrPart);
+                MimeBodyPart imagePart = new MimeBodyPart();
+                DataSource fds = new ByteArrayDataSource(qrCodeImage, "image/png");
+                imagePart.setDataHandler(new DataHandler(fds));
+                // Ensure each Content-ID is unique, e.g., by appending the ticket index
+                imagePart.setHeader("Content-ID", "<qrCodeImage" + i + ">");
+
+                // Add image part to multipart
+                multipart.addBodyPart(imagePart);
             }
 
-            // Create the HTML content with placeholders for the secondary banner and QR codes
-            StringBuilder emailContentBuilder = new StringBuilder();
-            emailContentBuilder.append("<html><body>");
-            emailContentBuilder.append("<img src='cid:secondaryBanner' alt='Secondary Banner' style='width:100%; height: auto;'><br>");
-
+            // Create the HTML content with placeholders for each unique QR code
+            StringBuilder emailContentBuilder = new StringBuilder("<html><body>");
             Event event = tickets.get(0).getEvent();
+
             for (int i = 0; i < tickets.size(); i++) {
                 emailContentBuilder.append("<h1>").append(event.getName()).append("</h1>");
-                emailContentBuilder.append("<p>").append(event.getLocation()).append(", ").append(event.getCity()).append("</p>");
-                emailContentBuilder.append("<p>Numărul de serie al biletului: ").append(tickets.get(i).getId().toString()).append("</p>");
-                emailContentBuilder.append("<p>Acces între: ").append(formatDate(event.getDate().toString())).append(" 22:00 și ").append(formatDate(event.getDate().toString())).append(" 05:00</p>");
-                emailContentBuilder.append("<p>Valid pentru o singură persoană</p>");
-                emailContentBuilder.append("<img src='cid:qrCodeImage").append(i).append("' alt='QR Code' style='width:150px; height:150px;'><br>");
+                emailContentBuilder.append("<p style=\"font-weight: 500;\">").append(event.getLocation()).append(" ").append(event.getCity()).append("</p>");
+                emailContentBuilder.append("<p style=\"font-weight: 500;\">Ticket serial number:</p>");
+                emailContentBuilder.append("<p>").append(tickets.get(i).getId().toString()).append("</p>");
+                emailContentBuilder.append("<p style=\"font-weight: 500;\">Access between:</p>");
+                emailContentBuilder.append("<p>").append(formatDate(event.getDate().toString())).append(" 22:00 and ").append(formatDate(event.getDate().toString())).append(" 05:00").append("</p>");
+                emailContentBuilder.append("<p>Valid for only one person</p>");
+                emailContentBuilder.append("<img src='cid:qrCodeImage").append(i).append("' alt='QR Code'>");
                 emailContentBuilder.append("<p>Organizator: Mamara Catalin Daniel, 49699573</p><br><br>");
             }
             emailContentBuilder.append("</body></html>");
 
-            // Create the message body part
-            MimeBodyPart htmlPart = new MimeBodyPart();
-            htmlPart.setContent(emailContentBuilder.toString(), "text/html");
-            multipart.addBodyPart(htmlPart);
+            // Create the message part
+            MimeBodyPart messageBodyPart = new MimeBodyPart();
+            messageBodyPart.setContent(emailContentBuilder.toString(), "text/html");
 
-            // Set the multipart as the content of the message
+            // Add message part to multipart
+            multipart.addBodyPart(messageBodyPart);
+
+            // Set multipart as content of message
             message.setContent(multipart);
 
             // Send the email
             Transport.send(message);
-
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
-
-
-
 
     private void updateEventStatistics(Event event, int ticketsSold, float moneyEarned) {
         Statistics statistics = statisticsService.getStatisticsByEventId(event.getId());

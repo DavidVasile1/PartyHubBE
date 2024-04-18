@@ -35,7 +35,7 @@ import java.util.UUID;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    @Value("server.url")
+    @Value("${server.url}")
     String serverUrl;
 
     private final AuthenticationManager authenticationManager;
@@ -71,8 +71,6 @@ public class AuthController {
     public ResponseEntity<ApiResponse> verify(@PathVariable UUID token) {
         User user = this.userService.findByVerificationToken(token);
         try {
-
-
                 if (!user.isVerified()) {
                     user.setVerified(true);
                     this.userService.save(user);
@@ -154,7 +152,7 @@ public class AuthController {
                     + "<h1>Account Activation</h1>"
                     + "<p>An email has been sent to you for activating your account. "
                     + "Please click the following button to proceed:</p>"
-                    + "<a href=\"" + this.serverUrl + "/verify/" + user.getVerificationToken() + "\">"
+                    + "<a href=\"" + this.serverUrl + "/confirm-email/" + user.getVerificationToken() + "\">"
                     + "<button style=\"background-color: red; color: white; padding: 15px 32px; text-align: center; border-radius: 15px; border: none;"
                     + "text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer;\">Activate account</button></a>"
                     + "<p>If you did not register for an account, please ignore this email.</p>"

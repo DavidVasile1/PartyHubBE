@@ -53,7 +53,6 @@ public class TicketServiceImpl implements TicketService {
     @Override
     public List<TicketDTO> getAllTicketsByEmail(String email) {
         List<Ticket> tickets = ticketRepository.findByEmail(email);
-
         return tickets.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
@@ -69,6 +68,4 @@ public class TicketServiceImpl implements TicketService {
                 event.getDate()
         );
     }
-
-
 }

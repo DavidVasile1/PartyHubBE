@@ -48,10 +48,11 @@ function handleFormSubmission(event) {
         const token = window.location.pathname.split('/').pop();
         const newPassword = password; // You can also get newPassword from a different source if needed
         const xhr = new XMLHttpRequest();
-        const serverUrl1 = document.getElementById('serverUrl').value;
-        const str = serverUrl1.value + token;
+        const serverUrl1 = document.getElementById('serverUrl').value + "";
+        const str = "http://localhost:8080/api/auth/reset-password/"
+            // serverUrl1 + '/' + token;
         console.log(str)
-        xhr.open('POST', str );
+        xhr.open('POST', str + token);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.onload = function() {
             const response = JSON.parse(xhr.responseText);
