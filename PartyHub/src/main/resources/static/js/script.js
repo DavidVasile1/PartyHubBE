@@ -49,7 +49,7 @@ function handleFormSubmission(event) {
         const newPassword = password; // You can also get newPassword from a different source if needed
         const xhr = new XMLHttpRequest();
         const serverUrl1 = document.getElementById('serverUrl').value + "";
-        const str = "http://localhost:8080/api/auth/reset-password/"
+        const str = "https://partyhub-3ad5952c706b.herokuapp.com/api/auth/reset-password/"
             // serverUrl1 + '/' + token;
         console.log(str)
         xhr.open('POST', str + token);
