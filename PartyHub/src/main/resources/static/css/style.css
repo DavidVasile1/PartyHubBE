@@ -110,3 +110,7 @@ p, h1, h2, h3{
     width: 100vw;
     height: 95px;
 }
+
+.cnt{
+    height: auto;
+}
