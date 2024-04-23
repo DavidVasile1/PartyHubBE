@@ -46,7 +46,7 @@ public class WebController {
         return "termeni-si-conditii";
     }
 
-    @GetMapping("/terms-and-conditions")
+    @GetMapping("/privacy-policy")
     public String showPrivacyPolicies() {
         return "politica-confidentialitate";
     }
