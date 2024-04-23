@@ -103,3 +103,10 @@ label {
     font-size: 22px;
     font-weight:700 ;
 }
+p, h1, h2, h3{
+    color: white;
+}
+.filler{
+    width: 100vw;
+    height: 95px;
+}
