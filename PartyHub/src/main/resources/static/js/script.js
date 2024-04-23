@@ -50,11 +50,11 @@ function handleFormSubmission(event) {
         const xhr = new XMLHttpRequest();
         const serverUrl1 = document.getElementById('serverUrl').value + "";
         const str = "https://partyhub-3ad5952c706b.herokuapp.com/api/auth/reset-password/"
-            // serverUrl1 + '/' + token;
+        // serverUrl1 + '/' + token;
         console.log(str)
         xhr.open('POST', str + token);
         xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.onload = function() {
+        xhr.onload = function () {
             const response = JSON.parse(xhr.responseText);
             if (xhr.status === 200 && response.success) {
                 document.getElementById('successMessage').style.display = 'block';
@@ -63,16 +63,16 @@ function handleFormSubmission(event) {
                 console.error(response.message);
             }
         };
-        xhr.send(JSON.stringify({ newPassword: newPassword }));
+        xhr.send(JSON.stringify(newPassword));
     }
 }
 
 // Add input event listeners to password fields
-document.getElementById('password').addEventListener('input', function() {
+document.getElementById('password').addEventListener('input', function () {
     updateValidationUI(isPasswordValid(this.value), doPasswordsMatch(this.value, document.getElementById('confirm-password').value));
 });
 
-document.getElementById('confirm-password').addEventListener('input', function() {
+document.getElementById('confirm-password').addEventListener('input', function () {
     updateValidationUI(isPasswordValid(document.getElementById('password').value), doPasswordsMatch(document.getElementById('password').value, this.value));
 });
 

@@ -3,13 +3,9 @@ package com.partyhub.PartyHub.controller;
 
 import com.partyhub.PartyHub.entities.User;
 import com.partyhub.PartyHub.exceptions.UserAlreadyVerifiedException;
-import com.partyhub.PartyHub.exceptions.UserNotFoundException;
 import com.partyhub.PartyHub.service.UserService;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,6 +39,16 @@ public class WebController {
             throw new UserAlreadyVerifiedException("User already verified!");
         }
         return "confirm-email";
+    }
+
+    @GetMapping("/terms-and-conditions")
+    public String showTermsAndConditions() {
+        return "termeni-si-conditii";
+    }
+
+    @GetMapping("/terms-and-conditions")
+    public String showPrivacyPolicies() {
+        return "politica-confidentialitate";
     }
 
 }
