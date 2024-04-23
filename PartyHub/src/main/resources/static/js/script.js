@@ -63,7 +63,7 @@ function handleFormSubmission(event) {
                 console.error(response.message);
             }
         };
-        xhr.send(JSON.stringify(newPassword));
+        xhr.send(newPassword);
     }
 }
 
