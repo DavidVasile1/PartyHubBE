@@ -50,5 +50,9 @@ public class WebController {
     public String showPrivacyPolicies() {
         return "politica-confidentialitate";
     }
+    @GetMapping("/privacy-policy")
+    public String showDeleteAccount() {
+        return "delete-account";
+    }
 
 }
