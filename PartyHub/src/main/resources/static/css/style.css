@@ -88,6 +88,9 @@ label {
     display: flex;
     justify-content: center;
     align-items: flex-end;
+    position: fixed;
+    top: 0;
+    left: 0;
 }
 
 .footer{
