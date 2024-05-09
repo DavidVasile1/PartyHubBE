@@ -1,25 +1,22 @@
 package com.partyhub.PartyHub.service.impl;
 
 import com.partyhub.PartyHub.service.EmailSenderService;
-import jakarta.activation.DataHandler;
-import jakarta.activation.DataSource;
-import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
-import jakarta.mail.Session;
-import jakarta.mail.Transport;
-import jakarta.mail.internet.*;
-import jakarta.mail.util.ByteArrayDataSource;
-import lombok.RequiredArgsConstructor;
+import jakarta.mail.internet.MimeMessage;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import lombok.RequiredArgsConstructor;
 
-
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 @Service
 @RequiredArgsConstructor
 public class EmailSenderServiceImpl implements EmailSenderService {
     private final JavaMailSender mailSender;
+    private static final Logger logger = Logger.getLogger(EmailSenderServiceImpl.class.getName());
+
 
     @Override
     public void sendEmail(String to, String subject, String body) {
@@ -29,10 +26,11 @@ public class EmailSenderServiceImpl implements EmailSenderService {
 
             helper.setTo(to);
             helper.setSubject(subject);
-            helper.setText(body, true);
+            helper.setText(body, true);  // Enable HTML content
 
             mailSender.send(message);
         } catch (MessagingException e) {
+            logger.log(Level.SEVERE, "Failed to send email to " + to, e);
             throw new RuntimeException("Failed to send email", e);
         }
     }
