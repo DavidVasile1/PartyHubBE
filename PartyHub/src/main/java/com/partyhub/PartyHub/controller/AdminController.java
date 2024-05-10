@@ -1,6 +1,10 @@
 package com.partyhub.PartyHub.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 import com.partyhub.PartyHub.dto.EventDto;
 import com.partyhub.PartyHub.dto.EventStatisticsDTO;
 import com.partyhub.PartyHub.dto.EventSummaryDto;
@@ -18,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -121,34 +126,46 @@ public class AdminController {
     }
 
     @PostMapping("/invites/{eventId}")
-    public ResponseEntity<?> generateAndSendInvites(@PathVariable UUID eventId,
-                                                    @RequestBody Integer numberOfInvites,
-                                                    Principal principal) {
-        String userEmail = principal.getName();
-        Event event = eventService.getEventById(eventId);
+    public ResponseEntity<?> generateAndSendInvites(@PathVariable UUID eventId, @RequestBody Integer numberOfInvites, Principal principal) {
+        try {
+            String userEmail = principal.getName();
+            Event event = eventService.getEventById(eventId);
 
-        List<Ticket> invites = new ArrayList<>();
-        for (int i = 0; i < numberOfInvites; i++) {
-            Ticket invite = new Ticket(UUID.randomUUID(),null, "invite", userEmail,event);
-            invites.add(ticketService.saveTicket(invite));
+            List<Ticket> invites = new ArrayList<>();
+            for (int i = 0; i < numberOfInvites; i++) {
+                Ticket invite = new Ticket(UUID.randomUUID(), null, "invite", userEmail, event);
+                invites.add(ticketService.saveTicket(invite));
+            }
+
+            // Actualizare statistici
+            Statistics stats = event.getStatistics();
+            if (stats == null) {
+                stats = new Statistics();
+                stats.setEvent(event);
+                event.setStatistics(stats);
+            }
+            stats.setGeneratedInvites(stats.getGeneratedInvites() + numberOfInvites);
+            statisticsService.save(stats);
+
+            // Construire corp email
+            String emailBody = "<html><body>";
+            for (Ticket invite : invites) {
+                byte[] qrCodeImage = generateQRCodeImage(invite.getId().toString());
+                String encodedImage = Base64.getEncoder().encodeToString(qrCodeImage);
+                emailBody += "<img src='data:image/png;base64, " + encodedImage + "' alt='QR Code'><br>";
+            }
+            emailBody += "</body></html>";
+
+            emailSenderService.sendHtmlEmail("danielmamara71@gmail.com", "Event Invitations", emailBody);
+
+            return ResponseEntity.ok("Invitations generated and sent successfully.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("Error sending invitations.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        Statistics stats = event.getStatistics();
-        if (stats == null) {
-            stats = new Statistics();
-            stats.setEvent(event);
-            event.setStatistics(stats);
-        }
-        stats.setGeneratedInvites(stats.getGeneratedInvites() + numberOfInvites);
-        statisticsService.save(stats);
-
-        String emailBody = invites.stream()
-                .map(invite -> "Invitation Code: " + invite.getId().toString())
-                .collect(Collectors.joining("\n"));
-        emailSenderService.sendEmail("danielmamara71@gmail.com", "Event Invitations", emailBody);
-
-        return ResponseEntity.ok("Invitations generated and sent successfully.");
     }
+
+
 
     @PostMapping("/discount")
     public ResponseEntity<ApiResponse> createDiscount(@RequestParam UUID eventId,
@@ -174,6 +191,7 @@ public class AdminController {
     }
 
 
+
     private String generateRandomCode() {
         String CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789";
         int CODE_LENGTH = 10;
@@ -187,6 +205,7 @@ public class AdminController {
 
         return sb.toString();
     }
+
 
     @GetMapping("/events/upcoming")
     public ResponseEntity<List<EventSummaryDto>> getUpcomingEvents() {
@@ -208,5 +227,12 @@ public class AdminController {
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
-
+    private byte[] generateQRCodeImage(String text) throws Exception {
+        QRCodeWriter qrCodeWriter = new QRCodeWriter();
+        BitMatrix bitMatrix = qrCodeWriter.encode(text, BarcodeFormat.QR_CODE, 350, 350);
+        try (ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream()) {
+            MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
+            return pngOutputStream.toByteArray();
+        }
+    }
 }
