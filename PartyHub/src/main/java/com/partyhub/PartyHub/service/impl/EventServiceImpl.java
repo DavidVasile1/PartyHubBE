@@ -57,16 +57,12 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public Event getNearestEvent(Optional<String> city) {
-        LocalDate today = LocalDate.now();
-        LocalDateTime endOfEventTomorrow = today.plusDays(1).atTime(23, 59, 59);
-
-        if (city.isPresent()) {
-            return eventRepository.findTopByCityAndStartDateLessThanEqualAndEndDateGreaterThanEqualOrderByStartDateAsc(
-                            city.get(), today, endOfEventTomorrow)
+        LocalDate today = LocalDate.now().minusDays(1);
+        if(city.isPresent()) {
+            return eventRepository.findTopByCityAndDateGreaterThanEqualOrderByDateAsc(city.get(), today)
                     .orElseThrow(() -> new EventNotFoundException("No upcoming events found in " + city.get()));
         } else {
-            return eventRepository.findTopByStartDateLessThanEqualAndEndDateGreaterThanEqualOrderByStartDateAsc(
-                            today, endOfEventTomorrow)
+            return eventRepository.findTopByDateGreaterThanEqualOrderByDateAsc(today)
                     .orElseThrow(() -> new EventNotFoundException("No upcoming events found"));
         }
     }
