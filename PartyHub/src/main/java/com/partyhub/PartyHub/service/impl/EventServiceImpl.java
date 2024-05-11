@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -57,14 +58,19 @@ public class EventServiceImpl implements EventService {
     @Override
     public Event getNearestEvent(Optional<String> city) {
         LocalDate today = LocalDate.now();
-        if(city.isPresent()) {
-            return eventRepository.findTopByCityAndDateAfterOrderByDateAsc(city.get(), today)
+        LocalDateTime endOfEventTomorrow = today.plusDays(1).atTime(23, 59, 59);
+
+        if (city.isPresent()) {
+            return eventRepository.findTopByCityAndStartDateLessThanEqualAndEndDateGreaterThanEqualOrderByStartDateAsc(
+                            city.get(), today, endOfEventTomorrow)
                     .orElseThrow(() -> new EventNotFoundException("No upcoming events found in " + city.get()));
         } else {
-            return eventRepository.findTopByDateAfterOrderByDateAsc(today)
+            return eventRepository.findTopByStartDateLessThanEqualAndEndDateGreaterThanEqualOrderByStartDateAsc(
+                            today, endOfEventTomorrow)
                     .orElseThrow(() -> new EventNotFoundException("No upcoming events found"));
         }
     }
+
 
     @Override
     public Event getEventById(UUID id) {
